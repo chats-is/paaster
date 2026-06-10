@@ -1,7 +1,7 @@
-import { del } from "@vercel/blob";
 import { NextRequest, NextResponse } from "next/server";
 
 import { redis } from "@/lib/redis";
+import { storage } from "@/lib/storage";
 
 export async function GET(req: NextRequest) {
   if (
@@ -20,9 +20,7 @@ export async function GET(req: NextRequest) {
   let deleted = 0;
   for (const fileUrl of expiredFiles) {
     try {
-      const url = new URL(fileUrl);
-      const blobPath = url.pathname.slice(1);
-      await del(blobPath);
+      await storage.delete(fileUrl);
       deleted++;
     } catch (err: any) {
       console.error(err);

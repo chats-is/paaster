@@ -1,4 +1,3 @@
-import { put } from "@vercel/blob";
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 
@@ -8,6 +7,7 @@ import {
   MAX_TOTAL_SIZE_MB,
 } from "@/lib/config";
 import { redis } from "@/lib/redis";
+import { storage } from "@/lib/storage";
 import { Attachment, Content } from "@/lib/types";
 import { generateId, parseExpires } from "@/lib/utils";
 
@@ -60,14 +60,12 @@ export async function POST(req: NextRequest) {
       }
 
       const pathname = path.join(uploadPath, "encrypted", `${id}-${i}.bin`);
-      const blob = await put(pathname, file, {
-        access: "public",
-        addRandomSuffix: false,
-        cacheControlMaxAge: ttl || 3600,
+      const url = await storage.upload(pathname, file, {
+        cacheMaxAge: ttl || 3600,
       });
 
       attachments.push({
-        data: blob.url,
+        data: url,
         name,
         size: parseFloat(size),
       });
