@@ -51,7 +51,7 @@ export default function RootLayout({
     <html className="h-full" suppressHydrationWarning>
       <body
         className={cn(
-          "h-full scroll-smooth antialiased flex flex-col bg-accent dark:bg-background",
+          "h-full scroll-smooth antialiased flex flex-col",
           geistSans.variable,
           geistMono.variable
         )}

@@ -5,16 +5,20 @@ import Link from "next/link";
 
 export default function Footer() {
   return (
-    <footer className="w-full border-t border-border/50 bg-gradient-to-t from-background/95 to-background/75 backdrop-blur-md mt-auto">
+    <footer className="w-full border-t border-border/40 bg-background/50 backdrop-blur-md mt-auto">
       <div className="max-w-6xl mx-auto w-full px-4 lg:px-0 py-6">
         <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
           {/* Left side - Copyright */}
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>© 2025 Paaster</span>
+            <span className="flex items-center gap-1.5">
+              <span className="brand-text font-semibold">Paaster</span>
+              <span className="text-muted-foreground/70">© 2025</span>
+            </span>
             <span className="hidden sm:inline">•</span>
             <span className="flex items-center gap-1">
               Made with{" "}
-              <HeartIcon className="size-3.5 fill-red-500 text-red-500" /> by AI
+              <HeartIcon className="size-3.5 fill-rose-500 text-rose-500 animate-pulse" />{" "}
+              by AI
             </span>
           </div>
 
