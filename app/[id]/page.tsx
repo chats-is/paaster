@@ -31,7 +31,7 @@ export default function Page() {
   const [fragment, setFragment] = useState<string>();
   const [password, setPassword] = useState<string>();
   const [textContent, setTextContent] = useState<string>();
-  const [blobContent, setBlobContent] = useState<Blob>();
+  const [blobContents, setBlobContents] = useState<Blob[]>([]);
   const [isOpenAlertDialog, setIsOpenAlertDialog] = useState(false);
   const [error, setError] = useState<string>();
 
@@ -62,15 +62,15 @@ export default function Page() {
         );
         setTextContent(decryptedText);
       }
-      if (content.attachment) {
-        const response = await fetch(content.attachment.data);
-        const blob = await response.blob();
-        const decryptedBlob = await decryptContent<Blob>(
-          blob,
-          fragment,
-          password
+      if (content.attachments && content.attachments.length > 0) {
+        const decryptedBlobs = await Promise.all(
+          content.attachments.map(async (attachment) => {
+            const response = await fetch(attachment.data);
+            const blob = await response.blob();
+            return decryptContent<Blob>(blob, fragment, password);
+          })
         );
-        setBlobContent(decryptedBlob);
+        setBlobContents(decryptedBlobs);
       }
     },
     []
@@ -113,11 +113,12 @@ export default function Page() {
   }, [id, fragment, decryptData]);
 
   const handleDownload = useCallback(
-    (filename: string) => {
-      if (!blobContent) return;
+    (index: number, filename: string) => {
+      const blob = blobContents[index];
+      if (!blob) return;
 
       try {
-        const url = URL.createObjectURL(blobContent);
+        const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
         a.download = filename;
@@ -127,7 +128,7 @@ export default function Page() {
         toast.error("Failed to download file");
       }
     },
-    [blobContent]
+    [blobContents]
   );
 
   return (
@@ -154,41 +155,50 @@ export default function Page() {
                       ).toLocaleString()}`}
                   </AlertTitle>
                 </Alert>
-                <Editor
-                  className="h-[32rem] rounded-md border border-border/50 overflow-hidden"
-                  theme={theme}
-                  language={data?.format}
-                  value={textContent}
-                />
-                {data.attachment && (
-                  <div className="mt-6">
-                    <div className="p-3 border border-border/50 rounded-xl bg-muted/30 flex items-center justify-between gap-4 transition-colors hover:bg-muted/50">
-                      <div className="flex items-center gap-3">
-                        <div className="p-2 bg-background rounded-full shadow-sm">
-                          <PaperclipIcon className="size-5 text-primary" />
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="font-medium text-sm">
-                            {data.attachment.name}
-                          </span>
-                          <span className="text-muted-foreground text-xs">
-                            {data.attachment.size} MB
-                          </span>
-                        </div>
-                      </div>
-                      <Button
-                        size="icon"
-                        variant="ghost"
-                        className="size-8 hover:bg-primary/10 hover:text-primary rounded-full"
-                        title="Download file"
-                        onClick={() =>
-                          data.attachment &&
-                          handleDownload(data.attachment.name)
-                        }
+                {textContent && (
+                  <Editor
+                    className="h-[32rem] rounded-md border border-border/50 overflow-hidden"
+                    theme={theme}
+                    language={data?.format}
+                    value={textContent}
+                  />
+                )}
+                {data.attachments && data.attachments.length > 0 && (
+                  <div
+                    className={`space-y-3 ${textContent ? "mt-6" : ""}`}
+                  >
+                    {data.attachments.map((attachment, index) => (
+                      <div
+                        key={`${attachment.name}-${index}`}
+                        className="p-3 border border-border/50 rounded-xl bg-muted/30 flex items-center justify-between gap-4 transition-colors hover:bg-muted/50"
                       >
-                        <DownloadIcon className="size-4" />
-                      </Button>
-                    </div>
+                        <div className="flex items-center gap-3 min-w-0">
+                          <div className="p-2 bg-background rounded-full shadow-sm">
+                            <PaperclipIcon className="size-5 text-primary" />
+                          </div>
+                          <div className="flex flex-col min-w-0">
+                            <span className="font-medium text-sm truncate">
+                              {attachment.name}
+                            </span>
+                            <span className="text-muted-foreground text-xs">
+                              {attachment.size} MB
+                            </span>
+                          </div>
+                        </div>
+                        <Button
+                          size="icon"
+                          variant="ghost"
+                          className="size-8 hover:bg-primary/10 hover:text-primary rounded-full shrink-0"
+                          title="Download file"
+                          disabled={!blobContents[index]}
+                          onClick={() =>
+                            handleDownload(index, attachment.name)
+                          }
+                        >
+                          <DownloadIcon className="size-4" />
+                        </Button>
+                      </div>
+                    ))}
                   </div>
                 )}
               </div>

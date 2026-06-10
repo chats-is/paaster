@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ExternalLinkIcon,
   LoaderCircleIcon,
   PaperclipIcon,
   PlusIcon,
@@ -31,6 +32,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import {
+  MAX_FILE_COUNT,
+  MAX_TOTAL_SIZE_BYTES,
+  MAX_TOTAL_SIZE_MB,
+} from "@/lib/config";
 import { encryptContent } from "@/lib/crypto";
 import { editorLanguages, generateId } from "@/lib/utils";
 
@@ -39,7 +45,7 @@ export default function Page() {
   const [title, setTitle] = useState<string>();
   const [format, setFormat] = useState("plaintext");
   const [text, setText] = useState<string>();
-  const [file, setFile] = useState<File>();
+  const [files, setFiles] = useState<File[]>([]);
   const [expires, setExpires] = useState("1d");
   const [burnAfterRead, setBurnAfterRead] = useState(false);
   const [password, setPassword] = useState<string>();
@@ -51,13 +57,20 @@ export default function Page() {
     try {
       setSubmitting(true);
 
-      if (!text && !file) {
+      if (!text && files.length === 0) {
         toast.error("Publish failed");
         return;
       }
 
-      if (file && file.size > 50 * 1024 * 1024) {
-        toast.error("File too large, max 50MB");
+      if (files.length > MAX_FILE_COUNT) {
+        toast.error(`Too many files, max ${MAX_FILE_COUNT}`);
+        return;
+      }
+
+      if (
+        files.reduce((sum, f) => sum + f.size, 0) > MAX_TOTAL_SIZE_BYTES
+      ) {
+        toast.error(`Total size too large, max ${MAX_TOTAL_SIZE_MB}MB`);
         return;
       }
 
@@ -66,9 +79,9 @@ export default function Page() {
         return;
       }
 
-      const { fragment, encryptedText, encryptedFile } = await encryptContent(
+      const { fragment, encryptedText, encryptedFiles } = await encryptContent(
         text,
-        file,
+        files,
         password
       );
 
@@ -85,14 +98,16 @@ export default function Page() {
         formData.append("format", format);
         formData.append("text", encryptedText);
       }
-      if (file && encryptedFile) {
+      files.forEach((f, i) => {
+        const encryptedFile = encryptedFiles[i];
+        if (!encryptedFile) return;
         formData.append("attachment_data", encryptedFile, "encrypted.bin");
-        formData.append("attachment_name", file.name);
+        formData.append("attachment_name", f.name);
         formData.append(
           "attachment_size",
-          (file.size / (1024 * 1024)).toFixed(2)
+          (f.size / (1024 * 1024)).toFixed(2)
         );
-      }
+      });
 
       const res = await fetch("/api", {
         method: "POST",
@@ -116,31 +131,42 @@ export default function Page() {
     }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = e.target.files?.[0];
-    if (selectedFile) {
-      if (selectedFile.size > 50 * 1024 * 1024) {
-        toast.error("File too large, max 50MB");
-        return;
+  const addFiles = (selected: FileList | null) => {
+    if (!selected || selected.length === 0) return;
+
+    const merged = [...files];
+    for (const f of Array.from(selected)) {
+      if (!merged.some((m) => m.name === f.name && m.size === f.size)) {
+        merged.push(f);
       }
-      setFile(selectedFile);
     }
+
+    if (merged.length > MAX_FILE_COUNT) {
+      toast.error(`Too many files, max ${MAX_FILE_COUNT}`);
+      return;
+    }
+
+    const totalSize = merged.reduce((sum, f) => sum + f.size, 0);
+    if (totalSize > MAX_TOTAL_SIZE_BYTES) {
+      toast.error(`Total size too large, max ${MAX_TOTAL_SIZE_MB}MB`);
+      return;
+    }
+
+    setFiles(merged);
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    addFiles(e.target.files);
+    e.target.value = "";
   };
 
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
-    const droppedFile = e.dataTransfer.files[0];
-    if (droppedFile) {
-      if (droppedFile.size > 50 * 1024 * 1024) {
-        toast.error("File too large, max 50MB");
-        return;
-      }
-      setFile(droppedFile);
-    }
+    addFiles(e.dataTransfer.files);
   };
 
-  const handleRemoveFile = () => {
-    setFile(undefined);
+  const handleRemoveFile = (index: number) => {
+    setFiles((prev) => prev.filter((_, i) => i !== index));
   };
 
   return (
@@ -157,15 +183,20 @@ export default function Page() {
                 onChange={(value: string) => setText(value)}
               />
             </div>
-            <div>
-              {file ? (
-                <div className="p-3 border border-border/50 rounded-xl bg-muted/30 flex items-center justify-between gap-4 transition-colors hover:bg-muted/50">
-                  <div className="flex items-center gap-3">
+            <div className="space-y-3">
+              {files.map((file, index) => (
+                <div
+                  key={`${file.name}-${index}`}
+                  className="p-3 border border-border/50 rounded-xl bg-muted/30 flex items-center justify-between gap-4 transition-colors hover:bg-muted/50"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
                     <div className="p-2 bg-background rounded-full shadow-sm">
                       <PaperclipIcon className="size-5 text-primary" />
                     </div>
-                    <div className="flex flex-col">
-                      <span className="font-medium text-sm">{file.name}</span>
+                    <div className="flex flex-col min-w-0">
+                      <span className="font-medium text-sm truncate">
+                        {file.name}
+                      </span>
                       <span className="text-muted-foreground text-xs">
                         {(file.size / (1024 * 1024)).toFixed(2)} MB
                       </span>
@@ -174,36 +205,38 @@ export default function Page() {
                   <Button
                     size="icon"
                     variant="ghost"
-                    className="size-8 hover:bg-destructive/10 hover:text-destructive rounded-full"
+                    className="size-8 hover:bg-destructive/10 hover:text-destructive rounded-full shrink-0"
                     title="Remove file"
-                    onClick={handleRemoveFile}
+                    onClick={() => handleRemoveFile(index)}
                   >
                     <XIcon className="size-4" />
                   </Button>
                 </div>
-              ) : (
-                <div
-                  className="p-3 border-2 border-dashed border-border/50 rounded-xl relative flex flex-col items-center justify-center gap-1 transition-colors hover:bg-muted/30 hover:border-primary/50"
-                  onDrop={handleDrop}
-                  onDragOver={(e) => e.preventDefault()}
-                >
-                  <input
-                    type="file"
-                    disabled={submitting}
-                    onChange={handleFileChange}
-                    className="w-full h-full absolute inset-0 opacity-0 cursor-pointer"
-                  />
-                  <div className="p-2 bg-muted/50 rounded-full">
-                    <PlusIcon className="size-4 text-muted-foreground" />
-                  </div>
-                  <div className="font-medium text-sm">
-                    Drop file here or click to upload
-                  </div>
-                  <p className="text-xs text-muted-foreground">
-                    Max file size: 50MB
-                  </p>
+              ))}
+              <div
+                className="p-3 border-2 border-dashed border-border/50 rounded-xl relative flex flex-col items-center justify-center gap-1 transition-colors hover:bg-muted/30 hover:border-primary/50"
+                onDrop={handleDrop}
+                onDragOver={(e) => e.preventDefault()}
+              >
+                <input
+                  type="file"
+                  multiple
+                  disabled={submitting}
+                  onChange={handleFileChange}
+                  className="w-full h-full absolute inset-0 opacity-0 cursor-pointer"
+                />
+                <div className="p-2 bg-muted/50 rounded-full">
+                  <PlusIcon className="size-4 text-muted-foreground" />
                 </div>
-              )}
+                <div className="font-medium text-sm">
+                  {files.length > 0
+                    ? "Add more files"
+                    : "Drop files here or click to upload"}
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Up to {MAX_FILE_COUNT} files, {MAX_TOTAL_SIZE_MB}MB total
+                </p>
+              </div>
             </div>
           </div>
         </div>
@@ -333,7 +366,7 @@ export default function Page() {
             <div className="pt-2">
               <Button
                 onClick={handleSubmit}
-                disabled={submitting || (!text && !file)}
+                disabled={submitting || (!text && files.length === 0)}
                 className="w-full"
                 size="lg"
               >
@@ -372,18 +405,34 @@ export default function Page() {
                   value={shareLink}
                   readOnly
                 />
-                <Button
-                  onClick={() => {
-                    if (shareLink && navigator.clipboard) {
-                      navigator.clipboard.writeText(shareLink);
-                      toast.success("Link copied to clipboard", {
-                        duration: 2000,
-                      });
-                    }
-                  }}
-                >
-                  Copy link
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button
+                    className="flex-1"
+                    onClick={() => {
+                      if (shareLink && navigator.clipboard) {
+                        navigator.clipboard.writeText(shareLink);
+                        toast.success("Link copied to clipboard", {
+                          duration: 2000,
+                        });
+                      }
+                    }}
+                  >
+                    Copy link
+                  </Button>
+                  {!burnAfterRead && (
+                    <Button
+                      variant="outline"
+                      onClick={() => {
+                        if (shareLink) {
+                          window.open(shareLink, "_blank", "noopener,noreferrer");
+                        }
+                      }}
+                    >
+                      <ExternalLinkIcon className="size-4" />
+                      Open link
+                    </Button>
+                  )}
+                </div>
               </div>
               <div className="flex-none order-1 sm:order-2">
                 <QRCodeSVG

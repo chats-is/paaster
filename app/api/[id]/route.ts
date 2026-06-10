@@ -25,11 +25,12 @@ export async function GET(
     await redis.expire(lockKey, 60);
     await redis.del(`paaster:${id}`);
 
-    if (data.attachment && data.attachment.data) {
-      await redis.zadd("paaster:files", {
+    if (data.attachments && data.attachments.length > 0) {
+      const [first, ...rest] = data.attachments.map((attachment) => ({
         score: new Date().getTime() + 5 * 60 * 1000,
-        member: data.attachment.data,
-      });
+        member: attachment.data,
+      }));
+      await redis.zadd("paaster:files", first, ...rest);
     }
   }
 

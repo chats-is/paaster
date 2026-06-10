@@ -67,7 +67,7 @@ function generateIv(iv: Uint8Array, password?: string): Uint8Array {
 
 export async function encryptContent(
   text?: string,
-  file?: File,
+  files?: File[],
   password?: string
 ) {
   const key = await crypto.subtle.generateKey(
@@ -84,7 +84,7 @@ export async function encryptContent(
   const iv = generateIv(originalIv, password);
 
   let encryptedText: string | undefined;
-  let encryptedFile: Blob | undefined;
+  const encryptedFiles: Blob[] = [];
 
   if (text) {
     const data = new TextEncoder().encode(text);
@@ -94,14 +94,16 @@ export async function encryptContent(
     encryptedText = btoa(String.fromCharCode(...encrypted));
   }
 
-  if (file) {
-    const data = await file.arrayBuffer();
-    const encrypted = await crypto.subtle.encrypt(
-      { name: "AES-GCM", iv },
-      key,
-      data
-    );
-    encryptedFile = new Blob([encrypted]);
+  if (files) {
+    for (const file of files) {
+      const data = await file.arrayBuffer();
+      const encrypted = await crypto.subtle.encrypt(
+        { name: "AES-GCM", iv },
+        key,
+        data
+      );
+      encryptedFiles.push(new Blob([encrypted]));
+    }
   }
 
   const fragment = generateFragment(rawKey, originalIv);
@@ -109,7 +111,7 @@ export async function encryptContent(
   return {
     fragment,
     encryptedText,
-    encryptedFile,
+    encryptedFiles,
   };
 }
 

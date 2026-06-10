@@ -2,8 +2,13 @@ import { put } from "@vercel/blob";
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 
+import {
+  MAX_FILE_COUNT,
+  MAX_TOTAL_SIZE_BYTES,
+  MAX_TOTAL_SIZE_MB,
+} from "@/lib/config";
 import { redis } from "@/lib/redis";
-import { Content } from "@/lib/types";
+import { Attachment, Content } from "@/lib/types";
 import { generateId, parseExpires } from "@/lib/utils";
 
 export async function POST(req: NextRequest) {
@@ -11,9 +16,9 @@ export async function POST(req: NextRequest) {
   const text = formData.get("text") as string | undefined;
   const title = formData.get("title") as string | undefined;
   const format = formData.get("format") as string | "plaintext";
-  const attachmentData = formData.get("attachment_data") as File | undefined;
-  const attachmentName = formData.get("attachment_name") as string | undefined;
-  const attachmentSize = formData.get("attachment_size") as string | undefined;
+  const attachmentData = formData.getAll("attachment_data") as File[];
+  const attachmentNames = formData.getAll("attachment_name") as string[];
+  const attachmentSizes = formData.getAll("attachment_size") as string[];
   const expires = formData.get("expires") as string;
   const hasPassword = formData.get("hasPassword") === "true";
   const burnAfterRead = expires === "b";
@@ -28,20 +33,45 @@ export async function POST(req: NextRequest) {
     id = generateId();
   }
 
-  let encryptedFileUrl;
-  if (attachmentData) {
-    if (attachmentData.size > 50 * 1024 * 1024) {
-      return new Response("File too large, max 50MB", { status: 400 });
+  const attachments: Attachment[] = [];
+  if (attachmentData.length > 0) {
+    if (attachmentData.length > MAX_FILE_COUNT) {
+      return new Response(`Too many files, max ${MAX_FILE_COUNT}`, {
+        status: 400,
+      });
+    }
+
+    const totalSize = attachmentData.reduce((sum, f) => sum + f.size, 0);
+    if (totalSize > MAX_TOTAL_SIZE_BYTES) {
+      return new Response(`Total size too large, max ${MAX_TOTAL_SIZE_MB}MB`, {
+        status: 400,
+      });
     }
 
     const uploadPath = process.env.UPLOAD_PATH || "paaster";
-    const pathname = path.join(uploadPath, "encrypted", `${id}.bin`);
-    const blob = await put(pathname, attachmentData, {
-      access: "public",
-      addRandomSuffix: false,
-      cacheControlMaxAge: ttl || 3600,
-    });
-    encryptedFileUrl = blob.url;
+
+    for (let i = 0; i < attachmentData.length; i++) {
+      const file = attachmentData[i];
+      const name = attachmentNames[i];
+      const size = attachmentSizes[i];
+
+      if (!name || size === undefined) {
+        continue;
+      }
+
+      const pathname = path.join(uploadPath, "encrypted", `${id}-${i}.bin`);
+      const blob = await put(pathname, file, {
+        access: "public",
+        addRandomSuffix: false,
+        cacheControlMaxAge: ttl || 3600,
+      });
+
+      attachments.push({
+        data: blob.url,
+        name,
+        size: parseFloat(size),
+      });
+    }
   }
 
   const createdAt = new Date().toISOString();
@@ -57,23 +87,17 @@ export async function POST(req: NextRequest) {
     burnAfterRead,
     hasPassword,
     text: text || undefined,
-    attachment:
-      encryptedFileUrl && attachmentName && attachmentSize
-        ? {
-            data: encryptedFileUrl,
-            name: attachmentName,
-            size: parseFloat(attachmentSize),
-          }
-        : undefined,
+    attachments: attachments.length > 0 ? attachments : undefined,
     createdAt: createdAt,
     expiresAt: expiresAt,
   };
 
-  if (!burnAfterRead && expiresAt && encryptedFileUrl) {
-    await redis.zadd("paaster:files", {
+  if (!burnAfterRead && expiresAt && attachments.length > 0) {
+    const [first, ...rest] = attachments.map((attachment) => ({
       score: new Date(expiresAt).getTime(),
-      member: encryptedFileUrl,
-    });
+      member: attachment.data,
+    }));
+    await redis.zadd("paaster:files", first, ...rest);
   }
 
   await redis.set(`paaster:${id}`, content, ttl ? { ex: ttl } : {});
