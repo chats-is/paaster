@@ -1,5 +1,6 @@
 "use client";
 
+import { ArrowLeftIcon, ShieldAlertIcon } from "lucide-react";
 import Link from "next/link";
 
 export default function DecryptionFailed({
@@ -8,16 +9,22 @@ export default function DecryptionFailed({
   children?: React.ReactNode;
 }) {
   return (
-    <div className="h-full bg-card p-2 sm:p-4 flex flex-col rounded-lg shadow-sm">
-      <div className="h-full flex flex-col items-center justify-center">
-        <h3 className="text-3xl text-gray-800 dark:text-gray-200">Error</h3>
-        <p className="mt-1 text-lg text-gray-600 dark:text-gray-400">
+    <div className="max-w-md mx-auto w-full">
+      <div className="bg-card/80 backdrop-blur-sm p-8 sm:p-10 flex flex-col items-center justify-center text-center rounded-2xl shadow-sm border border-border/50">
+        <div className="flex items-center justify-center size-16 rounded-2xl bg-rose-500/10 ring-1 ring-rose-500/20 mb-6">
+          <ShieldAlertIcon className="size-8 text-rose-500" />
+        </div>
+        <h3 className="text-xl font-semibold text-foreground">
+          Decryption failed
+        </h3>
+        <p className="mt-2 text-sm text-muted-foreground break-words">
           {children}
         </p>
         <Link
           href="/"
-          className="mt-6 text-blue-500 hover:underline dark:text-blue-400"
+          className="mt-6 inline-flex items-center gap-2 text-sm font-medium text-sky-600 dark:text-sky-300 hover:gap-3 transition-all"
         >
+          <ArrowLeftIcon className="size-4" />
           Return Home
         </Link>
       </div>

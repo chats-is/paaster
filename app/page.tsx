@@ -3,6 +3,7 @@
 import {
   ExternalLinkIcon,
   LoaderCircleIcon,
+  LockIcon,
   PaperclipIcon,
   PlusIcon,
   RotateCwIcon,
@@ -171,6 +172,20 @@ export default function Page() {
 
   return (
     <div className="max-w-6xl mx-auto w-full">
+      <div className="text-center py-6 sm:py-10">
+        <div className="inline-flex items-center gap-2 rounded-full border border-sky-500/20 bg-sky-500/10 px-3 py-1 text-xs font-medium text-sky-600 dark:text-sky-300 mb-4">
+          <LockIcon className="size-3.5" />
+          End-to-end encrypted in your browser
+        </div>
+        <h1 className="text-3xl sm:text-4xl font-bold tracking-tight">
+          Share text & files,{" "}
+          <span className="brand-text">privately</span>
+        </h1>
+        <p className="mt-3 text-sm sm:text-base text-muted-foreground max-w-xl mx-auto">
+          Your content is encrypted before it ever leaves your device. We never
+          see the key — only people with your link can decrypt it.
+        </p>
+      </div>
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3 space-y-6">
           <div className="bg-card p-4 sm:p-6 flex flex-col rounded-xl shadow-sm border border-border/50">
@@ -367,7 +382,7 @@ export default function Page() {
               <Button
                 onClick={handleSubmit}
                 disabled={submitting || (!text && files.length === 0)}
-                className="w-full"
+                className="w-full brand-gradient text-white border-0 shadow-md shadow-sky-500/20 hover:opacity-90 hover:shadow-lg hover:shadow-sky-500/30 transition-all disabled:opacity-50"
                 size="lg"
               >
                 {submitting ? (
@@ -376,7 +391,10 @@ export default function Page() {
                     Publishing...
                   </>
                 ) : (
-                  "Publish Paste"
+                  <>
+                    <LockIcon className="size-4" />
+                    Encrypt & Publish
+                  </>
                 )}
               </Button>
             </div>
