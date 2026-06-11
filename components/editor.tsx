@@ -17,7 +17,7 @@ import { yaml } from "@codemirror/lang-yaml";
 import { Compartment, EditorState, Transaction } from "@codemirror/state";
 import { oneDark } from "@codemirror/theme-one-dark";
 import { basicSetup, EditorView } from "codemirror";
-import { Check, Copy } from "lucide-react";
+import { Check, Copy, Eraser } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -66,6 +66,9 @@ type EditorProps = {
   language?: string;
   readOnly?: boolean;
   className?: string;
+  minHeight?: string;
+  maxHeight?: string;
+  fill?: boolean;
   onChange?: (value: string) => void;
 };
 
@@ -75,6 +78,9 @@ export function Editor({
   language,
   readOnly = false,
   className,
+  minHeight = "11rem",
+  maxHeight = "32rem",
+  fill = false,
   onChange,
 }: EditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
@@ -96,6 +102,18 @@ export function Editor({
     }
   };
 
+  const handleClear = () => {
+    const view = viewRef.current;
+    if (!view) return;
+
+    const length = view.state.doc.length;
+    if (length === 0) return;
+
+    // Replacing the whole doc triggers the updateListener, which calls onChange("")
+    view.dispatch({ changes: { from: 0, to: length, insert: "" } });
+    view.focus();
+  };
+
   useEffect(() => {
     if (!editorRef.current) return;
 
@@ -112,11 +130,13 @@ export function Editor({
       EditorView.editable.of(!readOnly),
       EditorView.lineWrapping,
       EditorView.theme({
-        "&": {
-          height: "100%",
+        "&": fill ? { height: "100%" } : { maxHeight },
+        ".cm-scroller": {
+          overflow: "auto",
         },
         ".cm-content": {
           paddingRight: "16px",
+          minHeight,
         },
       }),
     ];
@@ -187,20 +207,43 @@ export function Editor({
         <span className="text-sm text-muted-foreground font-medium">
           {language || "plaintext"}
         </span>
-        <Button
-          variant="ghost"
-          size="icon"
-          className="size-7 opacity-60 hover:opacity-100 disabled:opacity-30 disabled:cursor-not-allowed"
-          onClick={handleCopy}
-          type="button"
-          disabled={!value && (viewRef.current?.state.doc.length ?? 0) === 0}
-        >
-          {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-        </Button>
+        <div className="flex items-center gap-1">
+          {!readOnly && (
+            <Button
+              variant="ghost"
+              size="icon"
+              aria-label="Clear"
+              title="Clear"
+              className="size-7 opacity-60 hover:opacity-100 disabled:opacity-30 disabled:cursor-not-allowed"
+              onClick={handleClear}
+              type="button"
+              disabled={!value && (viewRef.current?.state.doc.length ?? 0) === 0}
+            >
+              <Eraser className="size-4" />
+            </Button>
+          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            aria-label="Copy"
+            title="Copy"
+            className="size-7 opacity-60 hover:opacity-100 disabled:opacity-30 disabled:cursor-not-allowed"
+            onClick={handleCopy}
+            type="button"
+            disabled={!value && (viewRef.current?.state.doc.length ?? 0) === 0}
+          >
+            {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
+          </Button>
+        </div>
       </div>
       {/* Editor container */}
-      <div className="relative rounded-b-sm overflow-hidden border flex-1 min-h-0">
-        <div ref={editorRef} className="h-full" />
+      <div
+        className={cn(
+          "relative rounded-b-sm overflow-hidden border",
+          fill && "flex-1 min-h-0"
+        )}
+      >
+        <div ref={editorRef} className={cn(fill && "h-full")} />
       </div>
     </div>
   );

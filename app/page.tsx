@@ -188,13 +188,14 @@ export default function Page() {
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <div className="lg:col-span-3 space-y-6">
-          <div className="bg-card p-4 sm:p-6 flex flex-col rounded-xl shadow-sm border border-border/50">
-            <div className="mb-6">
+          <div className="bg-card p-4 sm:p-6 flex flex-col rounded-xl shadow-sm border border-border/50 h-full">
+            <div className="flex-1 min-h-0 mb-6">
               <Editor
-                className="h-[32rem] rounded-md border border-border/50 overflow-hidden"
+                className="h-full rounded-md border border-border/50 overflow-hidden"
                 theme={theme}
                 language={format}
                 value={text}
+                fill
                 onChange={(value: string) => setText(value)}
               />
             </div>

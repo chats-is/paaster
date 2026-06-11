@@ -157,7 +157,7 @@ export default function Page() {
                 </Alert>
                 {textContent && (
                   <Editor
-                    className="h-[32rem] rounded-md border border-border/50 overflow-hidden"
+                    className="rounded-md border border-border/50 overflow-hidden"
                     theme={theme}
                     language={data?.format}
                     value={textContent}
