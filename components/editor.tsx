@@ -15,12 +15,10 @@ import { sql } from "@codemirror/lang-sql";
 import { xml } from "@codemirror/lang-xml";
 import { yaml } from "@codemirror/lang-yaml";
 import { Compartment, EditorState, Transaction } from "@codemirror/state";
-import { oneDark } from "@codemirror/theme-one-dark";
+import { placeholder as cmPlaceholder } from "@codemirror/view";
 import { basicSetup, EditorView } from "codemirror";
-import { Check, Copy, Eraser } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 
-import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
 const getLanguage = (language?: string) => {
@@ -60,59 +58,51 @@ const getLanguage = (language?: string) => {
   }
 };
 
+// No frame, transparent background, quiet gutter.
+const frameless = EditorView.theme({
+  "&": { backgroundColor: "transparent", fontSize: "13px" },
+  "&.cm-focused": { outline: "none" },
+  ".cm-scroller": { fontFamily: "var(--font-mono, ui-monospace, monospace)" },
+  ".cm-gutters": {
+    backgroundColor: "transparent",
+    border: "none",
+    color: "#a3aebb",
+    paddingLeft: "10px",
+  },
+  // Translucent so the selection layer underneath stays visible.
+  ".cm-activeLine, .cm-activeLineGutter": {
+    backgroundColor: "rgba(30, 70, 130, .05)",
+  },
+  ".cm-selectionBackground, &.cm-focused > .cm-scroller > .cm-selectionLayer .cm-selectionBackground":
+    { backgroundColor: "rgba(47, 111, 207, .22)" },
+  ".cm-placeholder": { color: "#a3aebb" },
+});
+
 type EditorProps = {
-  theme?: string;
   value?: string;
   language?: string;
   readOnly?: boolean;
   className?: string;
   minHeight?: string;
   maxHeight?: string;
-  fill?: boolean;
+  placeholder?: string;
   onChange?: (value: string) => void;
 };
 
+// A frameless CodeMirror editor that takes on the surface it sits on.
 export function Editor({
-  theme,
   value,
   language,
   readOnly = false,
   className,
   minHeight = "11rem",
   maxHeight = "32rem",
-  fill = false,
+  placeholder,
   onChange,
 }: EditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView>(null);
   const languageCompartment = useRef(new Compartment());
-  const themeCompartment = useRef(new Compartment());
-  const [copied, setCopied] = useState(false);
-
-  const handleCopy = async () => {
-    const content = viewRef.current?.state.doc.toString() || value || "";
-    if (!content) return;
-
-    try {
-      await navigator.clipboard.writeText(content);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch (err) {
-      console.error("Failed to copy:", err);
-    }
-  };
-
-  const handleClear = () => {
-    const view = viewRef.current;
-    if (!view) return;
-
-    const length = view.state.doc.length;
-    if (length === 0) return;
-
-    // Replacing the whole doc triggers the updateListener, which calls onChange("")
-    view.dispatch({ changes: { from: 0, to: length, insert: "" } });
-    view.focus();
-  };
 
   useEffect(() => {
     if (!editorRef.current) return;
@@ -120,7 +110,6 @@ export function Editor({
     const extensions = [
       basicSetup,
       languageCompartment.current.of(getLanguage(language)),
-      themeCompartment.current.of(theme === "dark" ? oneDark : []),
       EditorView.updateListener.of((update) => {
         if (update.docChanged && onChange) {
           onChange(update.state.doc.toString());
@@ -130,7 +119,7 @@ export function Editor({
       EditorView.editable.of(!readOnly),
       EditorView.lineWrapping,
       EditorView.theme({
-        "&": fill ? { height: "100%" } : { maxHeight },
+        "&": { maxHeight },
         ".cm-scroller": {
           overflow: "auto",
         },
@@ -139,6 +128,8 @@ export function Editor({
           minHeight,
         },
       }),
+      frameless,
+      placeholder ? cmPlaceholder(placeholder) : [],
     ];
 
     const state = EditorState.create({
@@ -152,7 +143,6 @@ export function Editor({
     });
 
     viewRef.current = view;
-    viewRef.current.focus();
 
     return () => {
       view.destroy();
@@ -164,7 +154,7 @@ export function Editor({
   }, []);
 
   useEffect(() => {
-    if (viewRef.current && value) {
+    if (viewRef.current && value !== undefined) {
       const currentValue = viewRef.current.state.doc.toString();
 
       if (currentValue !== value) {
@@ -190,61 +180,5 @@ export function Editor({
     }
   }, [language]);
 
-  useEffect(() => {
-    if (viewRef.current) {
-      viewRef.current.dispatch({
-        effects: themeCompartment.current.reconfigure(
-          theme === "dark" ? oneDark : []
-        ),
-      });
-    }
-  }, [theme]);
-
-  return (
-    <div className={cn("flex flex-col", className)}>
-      {/* Top toolbar with format and copy button */}
-      <div className="flex items-center justify-between px-3 py-2 bg-muted/50 border border-b-0 rounded-t-sm">
-        <span className="text-sm text-muted-foreground font-medium">
-          {language || "plaintext"}
-        </span>
-        <div className="flex items-center gap-1">
-          {!readOnly && (
-            <Button
-              variant="ghost"
-              size="icon"
-              aria-label="Clear"
-              title="Clear"
-              className="size-7 opacity-60 hover:opacity-100 disabled:opacity-30 disabled:cursor-not-allowed"
-              onClick={handleClear}
-              type="button"
-              disabled={!value && (viewRef.current?.state.doc.length ?? 0) === 0}
-            >
-              <Eraser className="size-4" />
-            </Button>
-          )}
-          <Button
-            variant="ghost"
-            size="icon"
-            aria-label="Copy"
-            title="Copy"
-            className="size-7 opacity-60 hover:opacity-100 disabled:opacity-30 disabled:cursor-not-allowed"
-            onClick={handleCopy}
-            type="button"
-            disabled={!value && (viewRef.current?.state.doc.length ?? 0) === 0}
-          >
-            {copied ? <Check className="size-4" /> : <Copy className="size-4" />}
-          </Button>
-        </div>
-      </div>
-      {/* Editor container */}
-      <div
-        className={cn(
-          "relative rounded-b-sm overflow-hidden border",
-          fill && "flex-1 min-h-0"
-        )}
-      >
-        <div ref={editorRef} className={cn(fill && "h-full")} />
-      </div>
-    </div>
-  );
+  return <div ref={editorRef} className={cn("min-w-0", className)} />;
 }

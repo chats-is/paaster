@@ -43,7 +43,71 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
+
+/* Home page folder illustration: its own palette and motion, exposed as
+   Tailwind tokens (bg-folder, text-paper-foreground, animate-folder-drop…). */
+@theme inline {
+  --color-desk: var(--desk);
+  --color-desk-hi: var(--desk-hi);
+  --color-folder: var(--folder);
+  --color-folder-deep: var(--folder-deep);
+  --color-folder-front: var(--folder-front);
+  --color-folder-front-deep: var(--folder-front-deep);
+  --color-folder-rim: var(--folder-rim);
+  --color-folder-shadow: var(--folder-shadow);
+  --color-paper: var(--paper);
+  --color-paper-muted: var(--paper-muted);
+  --color-paper-foreground: var(--paper-foreground);
+  --color-paper-foreground-muted: var(--paper-foreground-muted);
+  --color-sticker: var(--sticker);
+  --color-band: var(--band);
+  --color-key: var(--key);
+
+  --animate-folder-drop: folder-drop 0.6s cubic-bezier(0.25, 1.3, 0.4, 1);
+  --animate-folder-pop: folder-pop 0.18s ease-out;
+  --animate-folder-sheet: folder-sheet 0.3s cubic-bezier(0.3, 1.3, 0.5, 1);
+
+  @keyframes folder-drop {
+    from {
+      transform: translate(var(--x), -260px) rotate(calc(var(--r) * -2));
+      opacity: 0;
+    }
+  }
+  @keyframes folder-pop {
+    from {
+      opacity: 0;
+      transform: translateY(4px);
+    }
+  }
+  @keyframes folder-shake {
+    0%, 100% { translate: 0; }
+    20%, 60% { translate: -6px 0; }
+    40%, 80% { translate: 6px 0; }
+  }
+  @keyframes folder-sheet {
+    from {
+      transform: translateY(20px) rotate(2deg);
+      opacity: 0;
+    }
+  }
+}
+
 :root {
+  --desk: #e3e9f0;
+  --desk-hi: #f4f7fa;
+  --folder: rgba(63, 142, 240, 0.98);
+  --folder-deep: rgb(44, 116, 218);
+  --folder-front: rgba(150, 204, 255, 0.58);
+  --folder-front-deep: rgba(92, 164, 246, 0.72);
+  --folder-rim: rgba(255, 255, 255, 0.7);
+  --folder-shadow: rgba(17, 32, 56, 0.18);
+  --paper: #fbfcfd;
+  --paper-muted: #f1f4f7;
+  --paper-foreground: #1a2330;
+  --paper-foreground-muted: #5b6574;
+  --sticker: #ffd24d;
+  --band: #1c2533;
+  --key: #0e9f6e;
   --radius: 0.75rem;
   --background: oklch(0.99 0.004 200);
   --foreground: oklch(0.19 0.015 215);
@@ -79,6 +143,16 @@
 }
 
 .dark {
+  --desk: #0e1520;
+  --desk-hi: #1a2433;
+  --folder: rgba(47, 111, 207, 0.97);
+  --folder-deep: rgb(34, 88, 175);
+  --folder-front: rgba(110, 170, 240, 0.5);
+  --folder-front-deep: rgba(64, 128, 214, 0.66);
+  --folder-rim: rgba(255, 255, 255, 0.45);
+  --folder-shadow: rgba(0, 0, 0, 0.55);
+  --paper: #f1f3f5;
+  --paper-muted: #e3e7ec;
   --background: oklch(0.17 0.012 215);
   --foreground: oklch(0.97 0.004 200);
   --card: oklch(0.215 0.015 212);
@@ -132,25 +206,4 @@
     background-attachment: fixed;
     background-repeat: no-repeat;
   }
-}
-
-@utility brand-gradient {
-  background-image: linear-gradient(
-    110deg,
-    #2563eb 0%,
-    #0ea5e9 50%,
-    #06b6d4 100%
-  );
-}
-
-@utility brand-text {
-  background-image: linear-gradient(
-    110deg,
-    #2563eb 0%,
-    #0ea5e9 50%,
-    #06b6d4 100%
-  );
-  background-clip: text;
-  -webkit-background-clip: text;
-  color: transparent;
 }

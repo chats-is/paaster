@@ -1,15 +1,29 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" fill="none">
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
+  <!-- Paaster: a document sealed with a padlock. Same drawing as components/icons/paaster-logo.tsx -->
   <defs>
-    <linearGradient id="paaster-g" x1="2" y1="2" x2="30" y2="30" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#2563EB" />
-      <stop offset="0.5" stop-color="#0EA5E9" />
-      <stop offset="1" stop-color="#06B6D4" />
+    <linearGradient id="g" x1="4" y1="4" x2="44" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#2563eb"/>
+      <stop offset=".6" stop-color="#0ea5e9"/>
+      <stop offset="1" stop-color="#06b6d4"/>
     </linearGradient>
+    <mask id="f" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48">
+      <rect width="48" height="48" fill="#fff"/>
+      <path d="M24.3 6v5.8a2.4 2.4 0 0 0 2.4 2.4H32" stroke="#000" stroke-width="1.9" stroke-linejoin="round"/>
+      <rect x="11" y="19" width="13" height="2.2" rx="1.1" fill="#000"/>
+      <rect x="11" y="24.2" width="10" height="2.2" rx="1.1" fill="#000"/>
+      <rect x="11" y="29.4" width="7" height="2.2" rx="1.1" fill="#000"/>
+      <rect x="24" y="29" width="18.4" height="15" rx="5" fill="#000"/>
+      <path d="M29.7 31v-2.9a3.5 3.5 0 0 1 7 0V31" stroke="#000" stroke-width="6.6" stroke-linecap="round"/>
+    </mask>
+    <mask id="l" maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48">
+      <rect width="48" height="48" fill="#fff"/>
+      <circle cx="33.2" cy="35.6" r="1.7" fill="#000"/>
+      <path d="M32.4 36.4h1.6l.45 3h-2.5z" fill="#000"/>
+    </mask>
   </defs>
-  <rect width="32" height="32" rx="9" fill="url(#paaster-g)" />
-  <path d="M11 14.5V11.5a5 5 0 0 1 10 0V14.5" stroke="white" stroke-width="2.2"
-    stroke-linecap="round" fill="none" opacity="0.95" />
-  <rect x="8.5" y="14" width="15" height="11" rx="3.4" fill="white" />
-  <circle cx="16" cy="18.7" r="2.1" fill="url(#paaster-g)" />
-  <rect x="15" y="18.7" width="2" height="4" rx="1" fill="url(#paaster-g)" />
+  <g transform="translate(1.8 .8)">
+  <path d="M10 6h13.4a2.2 2.2 0 0 1 1.56.64l6.4 6.4A2.2 2.2 0 0 1 32 14.6V38a4 4 0 0 1-4 4H10a4 4 0 0 1-4-4V10a4 4 0 0 1 4-4z" fill="url(#g)" mask="url(#f)"/>
+  <path d="M29.7 31v-2.9a3.5 3.5 0 0 1 7 0V31" stroke="url(#g)" stroke-width="2.6" stroke-linecap="round"/>
+  <rect x="26" y="31" width="14.4" height="11" rx="3" fill="url(#g)" mask="url(#l)"/>
+  </g>
 </svg>
