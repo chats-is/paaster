@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  ArrowUpIcon,
   CheckIcon,
   ChevronDownIcon,
   CopyIcon,
@@ -10,7 +11,6 @@ import {
   PenLineIcon,
   PlusIcon,
   RotateCwIcon,
-  SendIcon,
   UploadIcon,
   XIcon,
 } from "lucide-react";
@@ -814,7 +814,7 @@ export function ShareFolder() {
               "disabled:aria-busy:cursor-progress disabled:aria-busy:border-foreground disabled:aria-busy:bg-foreground disabled:aria-busy:text-background"
             )}
           >
-            {busy ? <LoaderCircleIcon className="animate-spin" /> : <SendIcon />}
+            {busy ? <LoaderCircleIcon className="animate-spin" /> : <ArrowUpIcon />}
             {busy ? "Publishing…" : "Publish"}
           </button>
         </div>
