@@ -23,6 +23,7 @@ import {
   button,
   buttonPrimary,
   buttonRow,
+  copiedButton,
   CopyButton,
   copyImage,
   DeskPage,
@@ -165,6 +166,7 @@ export function ShareFolder() {
   };
 
   const copyImageOf = async (key: string, file: File) => {
+    if (copiedKey === key) return;
     try {
       await copyImage(file);
       setCopiedKey(key);
@@ -266,7 +268,7 @@ export function ShareFolder() {
   const [copiedKey, setCopiedKey] = useState<string>();
   const copy = async (what: "link" | "password") => {
     const value = what === "link" ? shareLink : password;
-    if (!value) return;
+    if (!value || copied === what) return;
     const label = what === "link" ? "Link" : "Password";
     try {
       await navigator.clipboard.writeText(value);
@@ -509,6 +511,7 @@ export function ShareFolder() {
                       <>
                         <SheetAction
                           label={copiedKey === card.key ? "Copied" : "Copy image"}
+                          done={copiedKey === card.key}
                           onClick={() => copyImageOf(card.key, card.entry.file)}
                         >
                           {copiedKey === card.key ? <CheckIcon /> : <CopyIcon />}
@@ -594,7 +597,7 @@ export function ShareFolder() {
                   aria-label="Title"
                   maxLength={100}
                   autoComplete="off"
-                  className="w-full border-b-[1.5px] border-dashed border-[#c6d0dc] pb-0.5 text-lg/[1.4] font-semibold tracking-tight text-paper-foreground placeholder:text-[#aab5c2] focus:border-primary focus:outline-none"
+                  className="w-full border-b border-[#dfe5ec] pb-0.5 text-lg/[1.4] font-semibold tracking-tight text-paper-foreground placeholder:text-[#aab5c2] focus:border-primary focus:outline-none"
                 />
                 <div className="mt-1.5 truncate font-mono text-[11.5px] text-paper-foreground-muted">
                   {summary.length
@@ -649,8 +652,11 @@ export function ShareFolder() {
                 // After publishing the password can't change; offer to copy it
                 <button
                   type="button"
-                  title="Copy password"
-                  aria-label="Copy password"
+                  title={copied === "password" ? "Copied" : "Copy password"}
+                  aria-label={
+                    copied === "password" ? "Copied" : "Copy password"
+                  }
+                  aria-disabled={copied === "password"}
                   onClick={(e) => {
                     e.preventDefault();
                     copy("password");
@@ -658,7 +664,8 @@ export function ShareFolder() {
                   className={cn(
                     revealOnOpen,
                     "-mr-1 grid size-[26px] shrink-0 cursor-pointer place-items-center rounded-full hover:bg-black/8 [&_svg]:size-3.5",
-                    copied === "password" && "text-key",
+                    copied === "password" &&
+                      "cursor-default text-key hover:bg-transparent",
                   )}
                 >
                   {copied === "password" ? <CheckIcon /> : <CopyIcon />}
@@ -813,7 +820,12 @@ export function ShareFolder() {
         </div>
       ) : (
         <div className={buttonRow}>
-          <button type="button" onClick={copyLink} className={buttonPrimary}>
+          <button
+            type="button"
+            onClick={copyLink}
+            aria-disabled={copied === "link"}
+            className={cn(buttonPrimary, copiedButton)}
+          >
             {copied === "link" ? <CheckIcon /> : <CopyIcon />}
             {copied === "link" ? "Copied" : "Copy link"}
           </button>

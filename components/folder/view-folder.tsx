@@ -22,6 +22,7 @@ import {
   button,
   buttonPrimary,
   buttonRow,
+  copiedButton,
   copyImage,
   DeskPage,
   dialog,
@@ -237,7 +238,7 @@ export function ViewFolder() {
   const pageUrl = fragment ? `${window.location.origin}/${id}#${fragment}` : "";
 
   const copyText = async () => {
-    if (!text) return;
+    if (!text || copied) return;
     try {
       await navigator.clipboard.writeText(text);
       setCopied(true);
@@ -255,7 +256,7 @@ export function ViewFolder() {
     );
   const copyImageAt = async (i: number) => {
     const file = files[i];
-    if (!file) return;
+    if (!file || copiedImage === i) return;
     try {
       await copyImage(file.blob);
       setCopiedImage(i);
@@ -317,6 +318,7 @@ export function ViewFolder() {
                     <>
                       <SheetAction
                         label={copied ? "Copied" : "Copy text"}
+                        done={copied}
                         onClick={copyText}
                       >
                         {copied ? <CheckIcon /> : <CopyIcon />}
@@ -356,6 +358,7 @@ export function ViewFolder() {
                           {isImage && (
                             <SheetAction
                               label={copiedImage === i ? "Copied" : "Copy image"}
+                              done={copiedImage === i}
                               onClick={() => copyImageAt(i)}
                             >
                               {copiedImage === i ? <CheckIcon /> : <CopyIcon />}
@@ -442,7 +445,7 @@ export function ViewFolder() {
                 ) : (
                   <>
                     {data?.title && (
-                      <div className="truncate border-b-[1.5px] border-dashed border-[#c6d0dc] pb-0.5 text-lg/[1.4] font-semibold tracking-tight text-paper-foreground">
+                      <div className="truncate border-b border-[#dfe5ec] pb-0.5 text-lg/[1.4] font-semibold tracking-tight text-paper-foreground">
                         {data.title}
                       </div>
                     )}
@@ -478,7 +481,12 @@ export function ViewFolder() {
       {open && (
         <div className={buttonRow}>
           {text && (
-            <button type="button" onClick={copyText} className={buttonPrimary}>
+            <button
+              type="button"
+              onClick={copyText}
+              aria-disabled={copied}
+              className={cn(buttonPrimary, copiedButton)}
+            >
               {copied ? <CheckIcon /> : <CopyIcon />}
               {copied ? "Copied" : "Copy text"}
             </button>
@@ -537,8 +545,12 @@ export function ViewFolder() {
               <button
                 type="button"
                 aria-label={copied ? "Copied" : "Copy text"}
+                aria-disabled={copied}
                 onClick={copyText}
-                className={iconButton}
+                className={cn(
+                  iconButton,
+                  "aria-disabled:cursor-default aria-disabled:hover:bg-paper-muted aria-disabled:hover:text-paper-foreground-muted",
+                )}
               >
                 {copied ? <CheckIcon /> : <CopyIcon />}
               </button>

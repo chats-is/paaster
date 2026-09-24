@@ -25,7 +25,7 @@ export function ErrorFolder({
       <Folder
         onFront={
           <div className={cn(frontCard, "h-[70px] content-center")}>
-            <div className="border-b-[1.5px] border-dashed border-[#c6d0dc] pb-0.5 text-lg/[1.4] font-semibold tracking-tight text-paper-foreground">
+            <div className="border-b border-[#dfe5ec] pb-0.5 text-lg/[1.4] font-semibold tracking-tight text-paper-foreground">
               Nothing here
             </div>
             <div className="mt-1.5 truncate font-mono text-[11.5px] text-paper-foreground-muted">

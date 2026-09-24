@@ -362,12 +362,13 @@ export function CopyButton({
   return (
     <button
       type="button"
-      title={label}
-      aria-label={label}
-      onClick={onClick}
+      title={copied ? "Copied" : label}
+      aria-label={copied ? "Copied" : label}
+      aria-disabled={copied}
+      onClick={() => !copied && onClick()}
       className={cn(
         "inline-grid size-4 shrink-0 cursor-pointer place-items-center rounded-full text-paper-foreground-muted transition-colors hover:bg-black/8 hover:text-paper-foreground [&_svg]:size-2.5",
-        copied && "text-key hover:text-key",
+        copied && "cursor-default text-key hover:bg-transparent hover:text-key",
         className
       )}
     >
@@ -393,6 +394,9 @@ export const buttonPrimary = cn(
   button,
   "border-foreground bg-foreground font-semibold text-background hover:-translate-y-px hover:bg-foreground disabled:translate-y-0 disabled:border-transparent disabled:bg-foreground/15 disabled:text-foreground/45 disabled:opacity-100"
 );
+// A button showing "Copied": looks and acts inert until it resets.
+export const copiedButton =
+  "aria-disabled:cursor-default aria-disabled:hover:translate-y-0";
 export const buttonRow = "mt-[18px] flex flex-wrap justify-center gap-2.5";
 export const footnote =
   "mx-auto mt-3 max-w-[460px] text-center text-[12.5px] text-balance text-muted-foreground";
@@ -445,10 +449,13 @@ const sheetAction =
 export function SheetAction({
   label,
   onClick,
+  done,
   children,
 }: {
   label: string;
   onClick: () => void;
+  // Just done (e.g. "Copied"): inert until it resets.
+  done?: boolean;
   children: React.ReactNode;
 }) {
   return (
@@ -456,8 +463,9 @@ export function SheetAction({
       type="button"
       aria-label={label}
       title={label}
-      className={sheetAction}
-      onClick={onClick}
+      aria-disabled={done}
+      className={cn(sheetAction, done && "cursor-default hover:bg-band/90")}
+      onClick={() => !done && onClick()}
     >
       {children}
     </button>
