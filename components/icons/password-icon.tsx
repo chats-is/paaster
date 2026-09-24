@@ -28,7 +28,7 @@ export function PasswordIcon({
       {...props}
     >
       {/* 2px safe margin on every side, like the other 24×24 icons */}
-      <rect x="2" y="7" width="20" height="10" rx="4" />
+      <rect x="2" y="7" width="20" height="10" rx="3" />
       {[7, 12, 17].map((cx) => (
         <g key={cx}>
           <path d={`M${cx} 10.4v3.2`} />
