@@ -77,7 +77,7 @@ export function DeskPage({
           href="/"
           className="flex items-center gap-2.5 text-base font-semibold tracking-tight"
         >
-          <PaasterLogo size={26} />
+          <PaasterLogo size={24} className="translate-y-[0.375px]" />
           Paaster
         </Link>
         <ThemeToggle />

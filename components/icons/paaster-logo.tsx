@@ -4,18 +4,19 @@ type PaasterLogoProps = React.SVGProps<SVGSVGElement> & {
   size?: number | string;
 };
 
-const FILE =
-  "M10 6h13.4a2.2 2.2 0 0 1 1.56.64l6.4 6.4A2.2 2.2 0 0 1 32 14.6V38a4 4 0 0 1-4 4H10a4 4 0 0 1-4-4V10a4 4 0 0 1 4-4z";
-const SHACKLE = "M29.7 31v-2.9a3.5 3.5 0 0 1 7 0V31";
+const BACK =
+  "M5 13.5A4 4 0 0 1 9 9.5H18a2.5 2.5 0 0 1 1.9.87l1.3 1.5a2.5 2.5 0 0 0 1.9.87H38.5A4.5 4.5 0 0 1 43 17.24V24H5z";
+const FRONT =
+  "M5 24.5A3.5 3.5 0 0 1 8.5 21h31a3.5 3.5 0 0 1 3.5 3.5V36a5 5 0 0 1-5 5H10a5 5 0 0 1-5-5z";
 
-// The Paaster mark: a document sealed with a padlock, in the brand gradient.
-// The fold, text lines and keyhole are cut out (masks), so it sits on any
-// background. Same drawing as public/logo.svg.
+// The Paaster mark: the site's folder reduced to an icon — two cards fanned
+// inside, the frosted front, a one-line title pill and the yellow expiry
+// sticker. 48 × 48 grid, drawing fills the 40-wide live area and is centred.
+// Same drawing as public/logo.svg.
 export function PaasterLogo({ size = 26, ...props }: PaasterLogoProps) {
   const id = React.useId();
-  const gradient = `${id}-g`;
-  const fileMask = `${id}-f`;
-  const lockMask = `${id}-l`;
+  const back = `${id}-back`;
+  const front = `${id}-front`;
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -28,60 +29,52 @@ export function PaasterLogo({ size = 26, ...props }: PaasterLogoProps) {
     >
       <defs>
         <linearGradient
-          id={gradient}
-          x1="4"
-          y1="4"
-          x2="44"
-          y2="44"
+          id={back}
+          x1="0"
+          y1="8"
+          x2="0"
+          y2="41"
           gradientUnits="userSpaceOnUse"
         >
-          <stop offset="0" stopColor="#2563eb" />
-          <stop offset=".6" stopColor="#0ea5e9" />
-          <stop offset="1" stopColor="#06b6d4" />
+          <stop offset="0" stopColor="#4d97f2" />
+          <stop offset="1" stopColor="#2a6fd6" />
         </linearGradient>
-        <mask id={fileMask} maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48">
-          <rect width="48" height="48" fill="#fff" />
-          {/* folded corner */}
-          <path
-            d="M24.3 6v5.8a2.4 2.4 0 0 0 2.4 2.4H32"
-            stroke="#000"
-            strokeWidth="1.9"
-            strokeLinejoin="round"
-          />
-          {/* text lines */}
-          <rect x="11" y="19" width="13" height="2.2" rx="1.1" fill="#000" />
-          <rect x="11" y="24.2" width="10" height="2.2" rx="1.1" fill="#000" />
-          <rect x="11" y="29.4" width="7" height="2.2" rx="1.1" fill="#000" />
-          {/* even gap around the padlock */}
-          <rect x="24" y="29" width="18.4" height="15" rx="5" fill="#000" />
-          <path d={SHACKLE} stroke="#000" strokeWidth="6.6" strokeLinecap="round" />
-        </mask>
-        <mask id={lockMask} maskUnits="userSpaceOnUse" x="0" y="0" width="48" height="48">
-          <rect width="48" height="48" fill="#fff" />
-          {/* keyhole */}
-          <circle cx="33.2" cy="35.6" r="1.7" fill="#000" />
-          <path d="M32.4 36.4h1.6l.45 3h-2.5z" fill="#000" />
-        </mask>
+        <linearGradient
+          id={front}
+          x1="0"
+          y1="18"
+          x2="0"
+          y2="41"
+          gradientUnits="userSpaceOnUse"
+        >
+          <stop offset="0" stopColor="#8ec5ff" />
+          <stop offset="1" stopColor="#4f9af2" />
+        </linearGradient>
       </defs>
-      {/* optically centred: the drawing spans x 6–40.4, y 6–42; its heavy
-          top-left page is balanced by nudging it right and down */}
-      <g transform="translate(1.8 .8)">
-        <path d={FILE} fill={`url(#${gradient})`} mask={`url(#${fileMask})`} />
-        <path
-          d={SHACKLE}
-          stroke={`url(#${gradient})`}
-          strokeWidth="2.6"
-          strokeLinecap="round"
+      <g transform="translate(24 24) scale(1.0526) translate(-24 -25.25)">
+        <path d={BACK} fill={`url(#${back})`} />
+        {/* two cards, fanned from their bottom centres as on the page */}
+        <rect
+          x="16.8"
+          y="14.8"
+          width="10"
+          height="17"
+          rx="1.4"
+          fill="#dce9f8"
+          transform="rotate(-3.5 21.8 31.8)"
         />
         <rect
-          x="26"
-          y="31"
-          width="14.4"
-          height="11"
-          rx="3"
-          fill={`url(#${gradient})`}
-          mask={`url(#${lockMask})`}
+          x="21.2"
+          y="14.8"
+          width="10"
+          height="17"
+          rx="1.4"
+          fill="#fff"
+          transform="rotate(3.5 26.2 31.8)"
         />
+        <path d={FRONT} fill={`url(#${front})`} />
+        <rect x="9.5" y="29.5" width="18" height="5" rx="2.5" fill="#fff" />
+        <circle cx="36" cy="32" r="3.8" fill="#ffc82e" />
       </g>
     </svg>
   );
