@@ -86,6 +86,8 @@ type EditorProps = {
   minHeight?: string;
   maxHeight?: string;
   placeholder?: string;
+  /** Initial focus when the editor sits in a dialog opened with showModal(). */
+  autoFocus?: boolean;
   onChange?: (value: string) => void;
 };
 
@@ -98,6 +100,7 @@ export function Editor({
   minHeight = "11rem",
   maxHeight = "32rem",
   placeholder,
+  autoFocus = false,
   onChange,
 }: EditorProps) {
   const editorRef = useRef<HTMLDivElement>(null);
@@ -130,6 +133,7 @@ export function Editor({
       }),
       frameless,
       placeholder ? cmPlaceholder(placeholder) : [],
+      autoFocus ? EditorView.contentAttributes.of({ autofocus: "" }) : [],
     ];
 
     const state = EditorState.create({

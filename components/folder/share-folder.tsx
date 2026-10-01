@@ -4,6 +4,7 @@ import {
   ArrowUpIcon,
   CheckIcon,
   ChevronDownIcon,
+  ClipboardPasteIcon,
   CopyIcon,
   DownloadIcon,
   ExternalLinkIcon,
@@ -182,10 +183,59 @@ export function ShareFolder() {
     setEntries((prev) => prev.filter((e) => e !== entry));
   };
 
+  const addText = (pasted: string) => {
+    if (!text) setFresh(new Set(["text"]));
+    setText((prev) => (prev ? `${prev}\n${pasted}` : pasted));
+    toast(text ? "Text appended" : "Text added");
+  };
+
+  // Reads the clipboard only when asked to (phones have no ⌘V to paste into
+  // the page). Same rules as a paste: images become files, unless they came
+  // with rich text, which means the text is what was copied.
+  const pasteFromClipboard = async () => {
+    setPop(null);
+    const clipboard = navigator.clipboard;
+    try {
+      if (clipboard?.read) {
+        const items = await clipboard.read();
+        const images: File[] = [];
+        let pasted = "";
+        let rich = false;
+        for (const item of items) {
+          if (item.types.some((t) => t === "text/html" || t === "text/rtf")) {
+            rich = true;
+          }
+          if (!pasted && item.types.includes("text/plain")) {
+            pasted = await (await item.getType("text/plain")).text();
+          }
+          for (const type of item.types.filter((t) => t.startsWith("image/"))) {
+            const blob = await item.getType(type);
+            const ext = type.slice(6).replace("+xml", "");
+            images.push(
+              renamePasted(new File([blob], `image.${ext}`, { type })),
+            );
+          }
+        }
+        if (images.length > 0 && !(rich && pasted)) return addFiles(images);
+        if (pasted) return addText(pasted);
+      } else if (clipboard?.readText) {
+        const pasted = await clipboard.readText();
+        if (pasted) return addText(pasted);
+      }
+      toast("Your clipboard is empty");
+    } catch {
+      toast.error(
+        "Couldn't read your clipboard — allow access, or paste into the page instead",
+      );
+    }
+  };
+
   /* ---------- the writing sheet ---------- */
   const openSheet = () => {
     setDraft({ text, format });
     sheet.current?.showModal();
+    // The editor carries autofocus for showModal(); this covers browsers that
+    // ignore it.
     requestAnimationFrame(() =>
       sheetInput.current?.querySelector<HTMLElement>(".cm-content")?.focus(),
     );
@@ -309,9 +359,7 @@ export function ShareFolder() {
       const target = e.target as HTMLElement | null;
       if (!pastedText || target?.closest("input, textarea")) return;
       e.preventDefault();
-      if (!text) setFresh(new Set(["text"]));
-      setText((prev) => (prev ? `${prev}\n${pastedText}` : pastedText));
-      toast(text ? "Text appended" : "Text added");
+      addText(pastedText);
     },
     drop: (files) => addFiles(files),
     key: (e) => {
@@ -416,6 +464,20 @@ export function ShareFolder() {
   // each opens next to its own trigger.
   const addMenu = (className: string) => (
     <div data-popover role="menu" className={cn(menu, "w-64", className)}>
+      <button
+        type="button"
+        role="menuitem"
+        className={menuItem}
+        onClick={pasteFromClipboard}
+      >
+        <span className="flex items-center gap-2.5">
+          <ClipboardPasteIcon className={menuIcon} />
+          <span>
+            Paste from clipboard
+            <small className={menuHint}>Text or images you&apos;ve copied</small>
+          </span>
+        </span>
+      </button>
       <button
         type="button"
         role="menuitem"
@@ -934,6 +996,7 @@ export function ShareFolder() {
               minHeight="252px"
               maxHeight="60vh"
               placeholder="Type or paste text or code…"
+              autoFocus
               onChange={(v) => setDraft((d) => ({ ...d, text: v }))}
             />
           </div>
