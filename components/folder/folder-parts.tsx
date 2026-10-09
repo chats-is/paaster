@@ -101,19 +101,6 @@ export function DeskPage({
 
 /* ---------- the folder ---------- */
 
-// Stage is drawn at 560 × 430 and scaled down to fit narrow screens.
-function useStageScale() {
-  const [scale, setScale] = useState(1);
-  useEffect(() => {
-    const fit = () =>
-      setScale(Math.min(1, (document.documentElement.clientWidth - 32) / 560));
-    fit();
-    window.addEventListener("resize", fit);
-    return () => window.removeEventListener("resize", fit);
-  }, []);
-  return scale;
-}
-
 // The folder: back panel, what's inside, a frosted front panel, and whatever
 // sits on the front. `sealing` slides the contents down, `sealed` raises the
 // front to close it. Children can read those via group-data-*/env.
@@ -133,16 +120,10 @@ export function Folder({
   sealed?: boolean;
   drag?: boolean;
 }) {
-  const scale = useStageScale();
+  // --stage-scale is set before the first paint (see lib/stage.ts).
   return (
-    <div
-      className="relative mx-auto"
-      style={{ width: 560 * scale, height: 430 * scale }}
-    >
-      <div
-        className="absolute top-0 left-0 h-[430px] w-[560px] origin-top-left"
-        style={{ transform: `scale(${scale})` }}
-      >
+    <div className="relative mx-auto h-[calc(430px*var(--stage-scale,1))] w-[calc(560px*var(--stage-scale,1))]">
+      <div className="absolute top-0 left-0 h-[430px] w-[560px] origin-top-left scale-(--stage-scale,1)">
         <div
           data-sealing={!!sealing}
           data-sealed={!!sealed}

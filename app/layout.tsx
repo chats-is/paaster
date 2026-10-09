@@ -6,6 +6,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 
 import { Toaster } from "@/components/ui/sonner";
+import { stageScaleScript } from "@/lib/stage";
 import { cn } from "@/lib/utils";
 
 const geistSans = Geist({
@@ -47,6 +48,9 @@ export default function RootLayout({
 }>) {
   return (
     <html className="h-full" suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: stageScaleScript }} />
+      </head>
       <body
         className={cn(
           "h-full scroll-smooth antialiased flex flex-col",
