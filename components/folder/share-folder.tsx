@@ -538,7 +538,7 @@ export function ShareFolder() {
         inside={
           <>
             {n === 0 && !busy && (
-              <div className="absolute top-11 left-40 z-[6] grid w-[200px] justify-items-center gap-1 text-center text-[13px] text-white">
+              <div className="absolute top-11 left-40 z-[6] grid w-[200px] justify-items-center gap-1 text-center text-[13px] text-white desk-stack:text-muted-foreground">
                 <button
                   type="button"
                   aria-label="Add content"
@@ -546,12 +546,12 @@ export function ShareFolder() {
                   aria-expanded={pop === "add"}
                   data-pop
                   onClick={togglePop("add")}
-                  className="mb-1 grid size-8 cursor-pointer place-items-center rounded-full border-[1.5px] border-dashed border-white/80 text-white transition-[rotate,background-color,border-color] duration-250 hover:rotate-90 hover:border-solid hover:border-white hover:bg-white/20 aria-expanded:rotate-90 aria-expanded:border-solid aria-expanded:border-white aria-expanded:bg-white/20 [&_svg]:size-[15px]"
+                  className="mb-1 grid size-8 cursor-pointer place-items-center rounded-full border-[1.5px] border-dashed border-white/80 text-white transition-[rotate,background-color,border-color] duration-250 hover:rotate-90 hover:border-solid hover:border-white hover:bg-white/20 aria-expanded:rotate-90 aria-expanded:border-solid aria-expanded:border-white aria-expanded:bg-white/20 desk-stack:border-current/60 desk-stack:text-foreground/70 desk-stack:hover:border-current/60 desk-stack:hover:bg-foreground/8 desk-stack:aria-expanded:border-current/60 desk-stack:aria-expanded:bg-foreground/8 [&_svg]:size-[15px]"
                 >
                   <PlusIcon />
                 </button>
                 <span>Add files or text</span>
-                <small className="text-[11.5px] text-white/80">
+                <small className="text-[11.5px] text-white/80 desk-stack:text-current desk-stack:opacity-80">
                   Drop, paste or click + to add
                 </small>
                 {pop === "add" &&
@@ -563,7 +563,7 @@ export function ShareFolder() {
               {cards.map((card, k) => {
                 const style = fanStyle(k, n);
                 const className = cn(
-                  fresh.has(card.key) && "animate-folder-drop",
+                  fresh.has(card.key) && "animate-sheet-rise",
                 );
                 // Corner actions: copy/download for images, then remove for
                 // every card.
@@ -685,7 +685,7 @@ export function ShareFolder() {
               data-set={locked}
               data-bad={passwordInvalid}
               data-hide={closed && !locked}
-              className="group/pw absolute top-[178px] right-[53px] z-[5] flex h-11 w-11 cursor-pointer items-center gap-2 overflow-hidden rounded-full bg-white bg-[radial-gradient(circle_at_35%_28%,#ffffff,#eaf1fb_45%,#bfd3ee)] shadow-[0_3px_6px_rgba(10,30,70,.28),inset_0_-2px_3px_rgba(20,50,100,.16)] px-2.5 whitespace-nowrap text-folder-deep transition-[width,background-color,color,box-shadow] duration-300 ease-[cubic-bezier(.4,0,.2,1)] data-[hide=true]:hidden hover:w-[236px] hover:cursor-text hover:bg-white hover:bg-none hover:text-paper-foreground hover:shadow-[0_2px_6px_rgba(10,30,70,.22)] focus-within:w-[236px] focus-within:cursor-text focus-within:bg-white focus-within:bg-none focus-within:text-paper-foreground focus-within:shadow-[0_2px_6px_rgba(10,30,70,.22)] data-[bad=true]:w-[236px] data-[bad=true]:bg-white data-[bad=true]:bg-none data-[bad=true]:text-paper-foreground data-[set=true]:not-hover:not-focus-within:bg-band data-[set=true]:not-hover:not-focus-within:bg-[radial-gradient(circle_at_35%_28%,#56627a,#1c2433_58%,#0b0f17)] data-[set=true]:not-hover:not-focus-within:text-white data-[set=true]:not-hover:not-focus-within:shadow-[0_3px_6px_rgba(10,30,70,.32),inset_0_-2px_3px_rgba(0,0,0,.35)]"
+              className="group/pw absolute top-[178px] right-[53px] z-[5] flex h-11 w-11 cursor-pointer items-center gap-2 overflow-hidden rounded-full bg-white bg-[radial-gradient(circle_at_35%_28%,#ffffff,#eaf1fb_45%,#bfd3ee)] shadow-[0_3px_6px_rgba(10,30,70,.28),inset_0_-2px_3px_rgba(20,50,100,.16)] px-2.5 whitespace-nowrap text-folder-deep desk-stack:text-[#2c74da] transition-[width,background-color,color,box-shadow] duration-300 ease-[cubic-bezier(.4,0,.2,1)] data-[hide=true]:hidden hover:w-[236px] hover:cursor-text hover:bg-white hover:bg-none hover:text-paper-foreground hover:shadow-[0_2px_6px_rgba(10,30,70,.22)] focus-within:w-[236px] focus-within:cursor-text focus-within:bg-white focus-within:bg-none focus-within:text-paper-foreground focus-within:shadow-[0_2px_6px_rgba(10,30,70,.22)] data-[bad=true]:w-[236px] data-[bad=true]:bg-white data-[bad=true]:bg-none data-[bad=true]:text-paper-foreground data-[set=true]:not-hover:not-focus-within:bg-band data-[set=true]:not-hover:not-focus-within:bg-[radial-gradient(circle_at_35%_28%,#56627a,#1c2433_58%,#0b0f17)] data-[set=true]:not-hover:not-focus-within:text-white data-[set=true]:not-hover:not-focus-within:shadow-[0_3px_6px_rgba(10,30,70,.32),inset_0_-2px_3px_rgba(0,0,0,.35)]"
             >
               <PasswordIcon className="size-6 shrink-0 group-focus-within/pw:text-primary group-hover/pw:text-primary" />
               <input

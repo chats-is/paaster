@@ -2,6 +2,9 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
+/* Desk styles, from <html data-desk-style> (see lib/desk-style.ts). */
+@custom-variant desk-folder (&:where(:root:not([data-desk-style="stack"]) *));
+@custom-variant desk-stack (&:where([data-desk-style="stack"] *));
 
 @theme inline {
   --color-background: var(--background);
@@ -45,7 +48,7 @@
 
 
 /* Home page folder illustration: its own palette and motion, exposed as
-   Tailwind tokens (bg-folder, text-paper-foreground, animate-folder-drop…). */
+   Tailwind tokens (bg-folder, text-paper-foreground, animate-sheet-rise…). */
 @theme inline {
   --color-desk: var(--desk);
   --color-desk-hi: var(--desk-hi);
@@ -63,13 +66,15 @@
   --color-band: var(--band);
   --color-key: var(--key);
 
-  --animate-folder-drop: folder-drop 0.6s cubic-bezier(0.25, 1.3, 0.4, 1);
+  --animate-sheet-rise: sheet-rise 0.6s cubic-bezier(0.2, 0.9, 0.3, 1) backwards;
   --animate-folder-pop: folder-pop 0.18s ease-out;
   --animate-folder-sheet: folder-sheet 0.3s cubic-bezier(0.3, 1.3, 0.5, 1);
 
-  @keyframes folder-drop {
+  /* Sheets arrive by floating up out of the middle of the desk (--cx/--cy,
+     set per desk style on the sheet). */
+  @keyframes sheet-rise {
     from {
-      transform: translate(var(--x), -260px) rotate(calc(var(--r) * -2));
+      transform: translate(var(--cx), calc(var(--cy) + 40px)) scale(0.5);
       opacity: 0;
     }
   }
@@ -186,9 +191,8 @@
   --sidebar-ring: oklch(0.556 0 0);
 }
 
-/* Folder colours: <html data-folder-color> is picked at random before the
-   first paint (lib/folder-colors.ts) and switched with the arrows. Blue is
-   the default above. Light first, then dark, so .dark wins on ties. */
+/* Folder colours: <html data-folder-color>, set before the first paint and
+   switched with the arrows (lib/desk-style.ts). Blue is the default above. Light first, then dark, so .dark wins on ties. */
 :root[data-folder-color="green"] {
   --folder: rgba(52, 176, 108, 0.98);
   --folder-deep: rgb(35, 144, 90);

@@ -23,7 +23,7 @@ import { useTheme } from "next-themes";
 import { useEffect, useRef, useState } from "react";
 
 import { PaasterLogo } from "@/components/icons/paaster-logo";
-import { stepFolderColor } from "@/lib/folder-colors";
+import { stepDeskLook } from "@/lib/desk-style";
 import { cn } from "@/lib/utils";
 
 /* ---------- page frame ---------- */
@@ -107,6 +107,8 @@ export function DeskPage({
 // The folder: back panel, what's inside, a frosted front panel, and whatever
 // sits on the front. `sealing` slides the contents down, `sealed` raises the
 // front to close it. Children can read those via group-data-*/env.
+// In the desk-stack style there are no panels: the sheets lie loose on the
+// desk and gather into one stack (`stacked`) when sealed.
 export function Folder({
   inside,
   onFront,
@@ -117,14 +119,14 @@ export function Folder({
 }: {
   inside?: React.ReactNode;
   onFront?: React.ReactNode;
-  // Positioned in stage coordinates, above the folder (e.g. popovers).
+  // Positioned in stage coordinates, above the desk (e.g. popovers).
   outside?: React.ReactNode;
   sealing?: boolean;
   sealed?: boolean;
   drag?: boolean;
 }) {
-  // Swipe sideways on the folder to change its colour (phones have no room
-  // for the arrows).
+  // Swipe sideways on the desk to change its look (phones have no room for
+  // the arrows).
   const touch = useRef<{ x: number; y: number }>(null);
   // --stage-scale is set before the first paint (see lib/stage.ts).
   return (
@@ -142,15 +144,16 @@ export function Folder({
         const dx = t.clientX - start.x;
         const dy = t.clientY - start.y;
         if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 2) {
-          stepFolderColor(dx < 0 ? 1 : -1);
+          stepDeskLook(dx < 0 ? 1 : -1);
         }
       }}
     >
-      {/* folder colour arrows, beside the folder where there's room */}
+      {/* look arrows (desk stack, then each folder colour), beside the desk
+          where there's room */}
       {(
         [
-          [-1, "Previous folder colour", ChevronLeftIcon, "-left-14"],
-          [1, "Next folder colour", ChevronRightIcon, "-right-14"],
+          [-1, "Previous style", ChevronLeftIcon, "-left-14"],
+          [1, "Next style", ChevronRightIcon, "-right-14"],
         ] as const
       ).map(([direction, label, Icon, side]) => (
         <button
@@ -158,7 +161,7 @@ export function Folder({
           type="button"
           aria-label={label}
           title={label}
-          onClick={() => stepFolderColor(direction)}
+          onClick={() => stepDeskLook(direction)}
           className={cn(
             "absolute top-[55%] z-10 hidden size-9 -translate-y-1/2 cursor-pointer place-items-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground min-[700px]:grid [&_svg]:size-5",
             side,
@@ -170,20 +173,23 @@ export function Folder({
       <div className="absolute top-0 left-0 h-[430px] w-[560px] origin-top-left scale-(--stage-scale,1)">
         <div
           data-sealing={!!sealing}
+          data-stacked={!!(sealing || sealed)}
           data-sealed={!!sealed}
           data-drag={!!drag}
           className="group/env absolute top-14 left-5 h-[360px] w-[520px]"
         >
           {/* soft shadow on the desk */}
-          <div className="pointer-events-none absolute inset-x-2 top-10 -bottom-2.5 rounded-[18px] bg-folder-shadow blur-[26px] after:absolute after:inset-x-[30px] after:bottom-1.5 after:h-[18px] after:rounded-full after:bg-folder-shadow after:blur-[8px] after:content-['']" />
+          <div className="desk-stack:hidden pointer-events-none absolute inset-x-2 top-10 -bottom-2.5 rounded-[18px] bg-folder-shadow blur-[26px] after:absolute after:inset-x-[30px] after:bottom-1.5 after:h-[18px] after:rounded-full after:bg-folder-shadow after:blur-[8px] after:content-['']" />
 
           {/* back panel and tab: one continuous shape, so there's no seam */}
-          <div className="absolute inset-0 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-folder)_86%,#fff)_0,var(--color-folder)_30px,var(--color-folder)_55%,var(--color-folder-deep)_100%)] [clip-path:path('M0_14_Q0_0_14_0_H146_C158_0_163_3_169_11_L176_20_C180_25_184_26_192_26_H502_Q520_26_520_44_V342_Q520_360_502_360_H18_Q0_360_0_342_Z')] group-data-[drag=true]/env:brightness-[1.12] after:pointer-events-none after:absolute after:inset-0 after:bg-[linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0)_2px),linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.3))] after:bg-no-repeat after:[background-position:0_0,190px_26px] after:[background-size:100%_100%,100%_1px] after:[clip-path:inherit] after:content-['']" />
+          <div className="desk-stack:hidden absolute inset-0 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-folder)_86%,#fff)_0,var(--color-folder)_30px,var(--color-folder)_55%,var(--color-folder-deep)_100%)] [clip-path:path('M0_14_Q0_0_14_0_H146_C158_0_163_3_169_11_L176_20_C180_25_184_26_192_26_H502_Q520_26_520_44_V342_Q520_360_502_360_H18_Q0_360_0_342_Z')] group-data-[drag=true]/env:brightness-[1.12] after:pointer-events-none after:absolute after:inset-0 after:bg-[linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0)_2px),linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.3))] after:bg-no-repeat after:[background-position:0_0,190px_26px] after:[background-size:100%_100%,100%_1px] after:[clip-path:inherit] after:content-['']" />
+
 
           {inside}
 
           {/* frosted, see-through front panel */}
-          <div className="pointer-events-none absolute inset-x-0 top-[140px] bottom-0 z-[4] rounded-t-[14px] rounded-b-2xl bg-[linear-gradient(180deg,var(--color-folder-front),var(--color-folder-front-deep))] shadow-[inset_0_1.5px_0_var(--color-folder-rim),inset_0_0_0_1px_rgba(255,255,255,.22),inset_0_-14px_22px_-16px_rgba(0,30,80,.35),0_-10px_18px_-12px_rgba(0,25,70,.4)] backdrop-blur-md backdrop-saturate-150 transition-[top,backdrop-filter] group-data-[sealed=true]/env:backdrop-blur-[1.5px] duration-650 ease-[cubic-bezier(.4,0,.2,1)] group-data-[sealed=true]/env:top-[34px] before:absolute before:inset-0 before:rounded-[inherit] before:bg-[linear-gradient(112deg,rgba(255,255,255,.26),rgba(255,255,255,0)_34%,rgba(255,255,255,0)_72%,rgba(255,255,255,.08))] before:content-['']" />
+          <div className="desk-stack:hidden pointer-events-none absolute inset-x-0 top-[140px] bottom-0 z-[4] rounded-t-[14px] rounded-b-2xl bg-[linear-gradient(180deg,var(--color-folder-front),var(--color-folder-front-deep))] shadow-[inset_0_1.5px_0_var(--color-folder-rim),inset_0_0_0_1px_rgba(255,255,255,.22),inset_0_-14px_22px_-16px_rgba(0,30,80,.35),0_-10px_18px_-12px_rgba(0,25,70,.4)] backdrop-blur-md backdrop-saturate-150 transition-[top,backdrop-filter] group-data-[sealed=true]/env:backdrop-blur-[1.5px] duration-650 ease-[cubic-bezier(.4,0,.2,1)] group-data-[sealed=true]/env:top-[34px] before:absolute before:inset-0 before:rounded-[inherit] before:bg-[linear-gradient(112deg,rgba(255,255,255,.26),rgba(255,255,255,0)_34%,rgba(255,255,255,0)_72%,rgba(255,255,255,.08))] before:content-['']" />
+
 
           {onFront}
         </div>
@@ -193,21 +199,44 @@ export function Folder({
   );
 }
 
-// Fans n sheets out across the folder mouth; returns the style for sheet k.
+// A small, fixed wobble per sheet so the desk looks casually laid out.
+const wobble = (k: number) => ((k * 7919) % 23) - 11;
+
+// Where sheet k of n goes, for both desk styles; `sheet` picks the set that
+// applies. Folder: fanned out across the folder mouth (--f*). Desk stack, in
+// stage coordinates and inside the folder's box (x 20–540, from y 56) so
+// both styles take up the same place: loose across the desk, centred (--d*;
+// the password button sits on top of them), and squared up into one stack
+// when sealed (--b*).
 export function fanStyle(k: number, n: number) {
   const mid = (n - 1) / 2;
   const spread = n > 1 ? Math.min(54, 290 / (n - 1)) : 0;
   const d = k - mid;
+
+  const sc = n > 7 ? 0.72 : n > 4 ? 0.84 : 1;
+  const w = 128 * sc;
+  const span = Math.min(470, 60 + n * 118 * sc);
+  const step = n > 1 ? (span - w) / (n - 1) : 0;
   return {
-    "--x": `${(d * spread).toFixed(1)}px`,
-    "--y": `${(Math.abs(d) ** 2 * 2.2 + Math.abs(d) * 3).toFixed(1)}px`,
-    "--r": `${Math.max(-20, Math.min(20, d * (n > 6 ? 5 : 7))).toFixed(1)}deg`,
-    "--sc": n > 7 ? 0.82 : n > 5 ? 0.9 : 1,
-    zIndex: 10 - Math.round(Math.abs(d)),
+    "--fx": `${(d * spread).toFixed(1)}px`,
+    "--fy": `${(Math.abs(d) ** 2 * 2.2 + Math.abs(d) * 3).toFixed(1)}px`,
+    "--fr": `${Math.max(-20, Math.min(20, d * (n > 6 ? 5 : 7))).toFixed(1)}deg`,
+    "--fsc": n > 7 ? 0.82 : n > 5 ? 0.9 : 1,
+    "--fz": 10 - Math.round(Math.abs(d)),
+    "--dx": `${(280 - span / 2 + k * step - (128 - w) / 2).toFixed(1)}px`,
+    "--dy": `${(64 + (k % 2 ? 26 : 0) + Math.abs(wobble(k)) - (184 - 184 * sc) / 2).toFixed(1)}px`,
+    "--dr": `${(wobble(k) * 1.1).toFixed(1)}deg`,
+    "--dsc": sc,
+    "--dz": 10 - Math.trunc(Math.abs(d)),
+    "--bx": `${(216 + d * 1.5).toFixed(1)}px`,
+    "--by": `${(72 - k * 1.2).toFixed(1)}px`,
+    "--br": `${((wobble(k) % 4) * 0.6).toFixed(1)}deg`,
+    "--bz": k + 1,
   } as React.CSSProperties;
 }
 
-// Wrap the sheets in this so they sit between the back and front panels.
+// Wrap the sheets in this so they sit between the back and front panels
+// (straight on the desk in the desk-stack style).
 export function Sheets({ children }: { children: React.ReactNode }) {
   return (
     <div className="absolute inset-0 z-[2] [clip-path:inset(-420px_-120px_0_-120px)]">
@@ -404,10 +433,17 @@ export function CopyButton({
 
 /* ---------- shared class lists ---------- */
 
-// A sheet of paper standing in the folder. Its fan-out position comes from
-// the --x/--y/--r/--sc custom properties set by fanStyle().
+// A sheet of paper. Its place comes from the custom properties set by
+// fanStyle(): the active style copies its set into --x/--y/--r/--sc, and
+// sets the middle of the desk (--cx/--cy) that sheets rise out of.
+// Folder: standing in the folder mouth.
+// Desk stack: loose on the desk, or squared up in the stack once sealed
+// (stage coordinates, so the sheet is anchored at the stage's corner). On
+// hover it comes to the front and its face (sheetFace) enlarges.
 export const sheet =
-  "group/item absolute bottom-[124px] left-[196px] h-[184px] w-[128px] origin-bottom drop-shadow-[0_2px_3px_rgba(20,30,50,.18)] [transform:translate(var(--x),var(--y))_rotate(var(--r))_scale(var(--sc,1))] transition-[transform,filter] duration-500 ease-[cubic-bezier(.25,1.2,.4,1)] hover:z-20 hover:drop-shadow-[0_10px_14px_rgba(20,30,50,.25)] hover:[transform:translate(var(--x),calc(var(--y)_-_48px))_rotate(calc(var(--r)_*_.4))_scale(calc(var(--sc,1)_*_1.04))] has-focus-visible:z-20 has-focus-visible:[transform:translate(var(--x),calc(var(--y)_-_48px))_rotate(calc(var(--r)_*_.4))_scale(calc(var(--sc,1)_*_1.04))] group-data-[sealing=true]/env:duration-550 group-data-[sealing=true]/env:[transform:translate(var(--x),calc(var(--y)_+_22px))_rotate(var(--r))_scale(var(--sc,1))]";
+  "group/item absolute h-[184px] w-[128px] origin-bottom [transform:translate(var(--x),var(--y))_rotate(var(--r))_scale(var(--sc,1))] transition-[transform,filter] duration-500 ease-[cubic-bezier(.25,1.2,.4,1)] " +
+  "desk-folder:[--cx:0px] desk-folder:[--cy:0px] desk-folder:[--x:var(--fx)] desk-folder:[--y:var(--fy)] desk-folder:[--r:var(--fr)] desk-folder:[--sc:var(--fsc)] desk-folder:z-(--fz) desk-folder:bottom-[124px] desk-folder:left-[196px] desk-folder:drop-shadow-[0_2px_3px_rgba(20,30,50,.18)] desk-folder:hover:drop-shadow-[0_10px_14px_rgba(20,30,50,.25)] desk-folder:hover:[transform:translate(var(--x),calc(var(--y)_-_48px))_rotate(calc(var(--r)_*_.4))_scale(calc(var(--sc,1)_*_1.04))] desk-folder:has-focus-visible:[transform:translate(var(--x),calc(var(--y)_-_48px))_rotate(calc(var(--r)_*_.4))_scale(calc(var(--sc,1)_*_1.04))] desk-folder:group-data-[sealing=true]/env:duration-550 desk-folder:group-data-[sealing=true]/env:[transform:translate(var(--x),calc(var(--y)_+_22px))_rotate(var(--r))_scale(var(--sc,1))] " +
+  "desk-stack:[--cx:216px] desk-stack:[--cy:72px] desk-stack:[--x:var(--dx)] desk-stack:[--y:var(--dy)] desk-stack:[--r:var(--dr)] desk-stack:[--sc:var(--dsc)] desk-stack:z-(--dz) desk-stack:-top-14 desk-stack:-left-5 desk-stack:origin-center desk-stack:duration-750 desk-stack:ease-[cubic-bezier(.4,0,.2,1)] desk-stack:[filter:drop-shadow(0_3px_4px_rgba(20,30,50,.18))_drop-shadow(0_1px_1px_rgba(20,30,50,.12))] desk-stack:group-data-[stacked=false]/env:hover:z-20 desk-stack:group-data-[stacked=false]/env:hover:duration-250 desk-stack:group-data-[stacked=false]/env:hover:[filter:drop-shadow(0_10px_12px_rgba(20,30,50,.22))_drop-shadow(0_2px_3px_rgba(20,30,50,.12))] desk-stack:group-data-[stacked=false]/env:has-focus-visible:z-20 desk-stack:group-data-[stacked=false]/env:has-focus-visible:duration-250 desk-stack:group-data-[stacked=true]/env:z-(--bz) desk-stack:group-data-[stacked=true]/env:[transform:translate(var(--bx),var(--by))_rotate(var(--br))]";
 
 // The white card on the folder's front.
 export const frontCard =
@@ -497,7 +533,14 @@ export function SheetAction({
   );
 }
 
-// A sheet standing in the folder: the whole sheet is one button, with its
+// Desk stack: the hover enlargement sits on this inner layer with its own
+// short transition, so a sheet shrinks back quickly and its place in the
+// pile (z-index on the outer layer) changes at once, without waiting for the
+// longer move of the outer layer.
+const sheetFace =
+  "absolute inset-0 transition-[scale] duration-250 ease-out desk-stack:group-data-[stacked=false]/env:group-hover/item:scale-110 desk-stack:group-data-[stacked=false]/env:group-has-focus-visible/item:scale-110";
+
+// A sheet on the desk: the whole sheet is one button, with its
 // corner actions as sibling buttons (a button can't contain buttons).
 export function SheetCard({
   label,
@@ -517,17 +560,19 @@ export function SheetCard({
   children: React.ReactNode;
 }) {
   return (
-    <div className={cn(sheet, className)} style={style}>
-      <button
-        type="button"
-        aria-label={label}
-        disabled={disabled}
-        onClick={onClick}
-        className="absolute inset-0 cursor-pointer rounded-lg disabled:cursor-default"
-      >
-        {children}
-      </button>
-      {actions && <div className={sheetActions}>{actions}</div>}
+    <div data-sheet className={cn(sheet, className)} style={style}>
+      <div className={sheetFace}>
+        <button
+          type="button"
+          aria-label={label}
+          disabled={disabled}
+          onClick={onClick}
+          className="absolute inset-0 cursor-pointer rounded-lg disabled:cursor-default"
+        >
+          {children}
+        </button>
+        {actions && <div className={sheetActions}>{actions}</div>}
+      </div>
     </div>
   );
 }

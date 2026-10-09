@@ -6,7 +6,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 
 import { Toaster } from "@/components/ui/sonner";
-import { folderColorScript } from "@/lib/folder-colors";
+import { deskLookScript } from "@/lib/desk-style";
 import { stageScaleScript } from "@/lib/stage";
 import { cn } from "@/lib/utils";
 
@@ -51,7 +51,7 @@ export default function RootLayout({
     <html className="h-full" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: stageScaleScript }} />
-        <script dangerouslySetInnerHTML={{ __html: folderColorScript }} />
+        <script dangerouslySetInnerHTML={{ __html: deskLookScript }} />
       </head>
       <body
         className={cn(

@@ -235,6 +235,9 @@ export function ViewFolder() {
     otherCount && `${otherCount} ${otherCount === 1 ? "file" : "files"}`,
   ].filter(Boolean);
   const viewed = viewing !== undefined ? files[viewing] : undefined;
+  const sealedCount = data
+    ? Math.min(10, Math.max(1, (data.text ? 1 : 0) + attachments.length))
+    : 3;
   const pageUrl = fragment ? `${window.location.origin}/${id}#${fragment}` : "";
 
   const copyText = async () => {
@@ -306,12 +309,30 @@ export function ViewFolder() {
       <Folder
         sealed={!open}
         inside={
-          open && (
-            <Sheets>
+          <Sheets>
+            {/* Desk stack: until it's opened, the content is a stack of blank
+                sheets; the decrypted content then rises out of the middle.
+                The folder shows nothing until then. */}
+            {!open &&
+              Array.from({ length: sealedCount }, (_, k) => (
+                <SheetCard
+                  key={`sheet-${k}`}
+                  label="Sealed content"
+                  className="desk-folder:hidden"
+                  disabled
+                  style={fanStyle(k, sealedCount)}
+                  onClick={() => {}}
+                >
+                  <span className="absolute inset-0 rounded-lg bg-paper" />
+                </SheetCard>
+              ))}
+            {open && (
+              <>
               {text && (
                 <SheetCard
+                  key="sheet-0"
                   label="Read text"
-                  className="animate-folder-drop"
+                  className="animate-sheet-rise"
                   style={fanStyle(0, n)}
                   onClick={() => noteDialog.current?.showModal()}
                   actions={
@@ -338,9 +359,9 @@ export function ViewFolder() {
                 const isImage = !!IMAGE_TYPES[fileExt(att.name)];
                 return (
                   <SheetCard
-                    key={`${att.name}-${i}`}
+                    key={`sheet-${k}`}
                     label={isImage ? `View ${att.name}` : `Download ${att.name}`}
-                    className="animate-folder-drop"
+                    className="animate-sheet-rise"
                     style={fanStyle(k, n)}
                     disabled={!file}
                     onClick={() => {
@@ -382,8 +403,9 @@ export function ViewFolder() {
                   </SheetCard>
                 );
               })}
-            </Sheets>
-          )
+              </>
+            )}
+          </Sheets>
         }
         onFront={
           <>
@@ -461,15 +483,19 @@ export function ViewFolder() {
                 )}
               </div>
             )}
-            {data && (burn || data.expiresAt) && (
+            {/* shown from the start, so it doesn't pop in once the content
+                has loaded; the time fills in then */}
+            {(!data || burn || data.expiresAt) && (
               <Sticker
                 burn={burn}
-                num={num}
+                num={data ? num : "–"}
                 unit={unit}
                 title={
-                  burn
-                    ? "Burned after reading"
-                    : `Expires ${formatDate(data.expiresAt!)}`
+                  !data
+                    ? "Expiration"
+                    : burn
+                      ? "Burned after reading"
+                      : `Expires ${formatDate(data.expiresAt!)}`
                 }
                 tabIndex={-1}
               />
