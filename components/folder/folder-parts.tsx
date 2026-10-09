@@ -108,7 +108,7 @@ export function DeskPage({
 // sits on the front. `sealing` slides the contents down, `sealed` raises the
 // front to close it. Children can read those via group-data-*/env.
 // In the desk-stack style there are no panels: the sheets lie loose on the
-// desk and gather into one stack (`stacked`) when sealed.
+// desk and draw together (`stacked`) when sealed.
 export function Folder({
   inside,
   onFront,
@@ -206,8 +206,8 @@ const wobble = (k: number) => ((k * 7919) % 23) - 11;
 // applies. Folder: fanned out across the folder mouth (--f*). Desk stack, in
 // stage coordinates and inside the folder's box (x 20–540, from y 56) so
 // both styles take up the same place: loose across the desk, centred (--d*;
-// the password button sits on top of them), and squared up into one stack
-// when sealed (--b*).
+// the password button sits on top of them), and drawn together into a
+// compact, overlapping fan when sealed (--b*).
 export function fanStyle(k: number, n: number) {
   const mid = (n - 1) / 2;
   const spread = n > 1 ? Math.min(54, 290 / (n - 1)) : 0;
@@ -217,6 +217,7 @@ export function fanStyle(k: number, n: number) {
   const w = 128 * sc;
   const span = Math.min(470, 60 + n * 118 * sc);
   const step = n > 1 ? (span - w) / (n - 1) : 0;
+  const bstep = n > 1 ? Math.min(24, 140 / (n - 1)) : 0;
   return {
     "--fx": `${(d * spread).toFixed(1)}px`,
     "--fy": `${(Math.abs(d) ** 2 * 2.2 + Math.abs(d) * 3).toFixed(1)}px`,
@@ -228,9 +229,9 @@ export function fanStyle(k: number, n: number) {
     "--dr": `${(wobble(k) * 1.1).toFixed(1)}deg`,
     "--dsc": sc,
     "--dz": 10 - Math.trunc(Math.abs(d)),
-    "--bx": `${(216 + d * 1.5).toFixed(1)}px`,
-    "--by": `${(72 - k * 1.2).toFixed(1)}px`,
-    "--br": `${((wobble(k) % 4) * 0.6).toFixed(1)}deg`,
+    "--bx": `${(216 + d * bstep).toFixed(1)}px`,
+    "--by": `${(72 + Math.abs(d) * 3).toFixed(1)}px`,
+    "--br": `${(d * Math.min(3, 20 / Math.max(1, n - 1))).toFixed(1)}deg`,
     "--bz": k + 1,
   } as React.CSSProperties;
 }
@@ -437,7 +438,7 @@ export function CopyButton({
 // fanStyle(): the active style copies its set into --x/--y/--r/--sc, and
 // sets the middle of the desk (--cx/--cy) that sheets rise out of.
 // Folder: standing in the folder mouth.
-// Desk stack: loose on the desk, or squared up in the stack once sealed
+// Desk stack: loose on the desk, or drawn together once sealed
 // (stage coordinates, so the sheet is anchored at the stage's corner). On
 // hover it comes to the front and its face (sheetFace) enlarges.
 export const sheet =
