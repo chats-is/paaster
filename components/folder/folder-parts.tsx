@@ -2,6 +2,8 @@
 
 import {
   CheckIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
   CopyIcon,
   FileArchiveIcon,
   FileAudioIcon,
@@ -18,9 +20,10 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { PaasterLogo } from "@/components/icons/paaster-logo";
+import { stepFolderColor } from "@/lib/folder-colors";
 import { cn } from "@/lib/utils";
 
 /* ---------- page frame ---------- */
@@ -120,9 +123,50 @@ export function Folder({
   sealed?: boolean;
   drag?: boolean;
 }) {
+  // Swipe sideways on the folder to change its colour (phones have no room
+  // for the arrows).
+  const touch = useRef<{ x: number; y: number }>(null);
   // --stage-scale is set before the first paint (see lib/stage.ts).
   return (
-    <div className="relative mx-auto h-[calc(430px*var(--stage-scale,1))] w-[calc(560px*var(--stage-scale,1))]">
+    <div
+      className="relative mx-auto h-[calc(430px*var(--stage-scale,1))] w-[calc(560px*var(--stage-scale,1))]"
+      onTouchStart={(e) => {
+        const t = e.touches[0];
+        touch.current = { x: t.clientX, y: t.clientY };
+      }}
+      onTouchEnd={(e) => {
+        const start = touch.current;
+        touch.current = null;
+        if (!start) return;
+        const t = e.changedTouches[0];
+        const dx = t.clientX - start.x;
+        const dy = t.clientY - start.y;
+        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 2) {
+          stepFolderColor(dx < 0 ? 1 : -1);
+        }
+      }}
+    >
+      {/* folder colour arrows, beside the folder where there's room */}
+      {(
+        [
+          [-1, "Previous folder colour", ChevronLeftIcon, "-left-14"],
+          [1, "Next folder colour", ChevronRightIcon, "-right-14"],
+        ] as const
+      ).map(([direction, label, Icon, side]) => (
+        <button
+          key={direction}
+          type="button"
+          aria-label={label}
+          title={label}
+          onClick={() => stepFolderColor(direction)}
+          className={cn(
+            "absolute top-[55%] z-10 hidden size-9 -translate-y-1/2 cursor-pointer place-items-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground min-[700px]:grid [&_svg]:size-5",
+            side,
+          )}
+        >
+          <Icon />
+        </button>
+      ))}
       <div className="absolute top-0 left-0 h-[430px] w-[560px] origin-top-left scale-(--stage-scale,1)">
         <div
           data-sealing={!!sealing}

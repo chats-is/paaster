@@ -121,8 +121,8 @@
   --secondary-foreground: oklch(0.44 0.11 245);
   --muted: oklch(0.968 0.006 240);
   --muted-foreground: oklch(0.52 0.025 245);
-  --accent: oklch(0.95 0.03 240);
-  --accent-foreground: oklch(0.44 0.12 245);
+  --accent: oklch(0.945 0.004 250);
+  --accent-foreground: oklch(0.21 0.015 245);
   --destructive: oklch(0.577 0.245 27.325);
   --border: oklch(0.91 0.012 245);
   --input: oklch(0.91 0.012 245);
@@ -165,7 +165,7 @@
   --secondary-foreground: oklch(0.97 0.004 240);
   --muted: oklch(0.27 0.02 245);
   --muted-foreground: oklch(0.72 0.03 245);
-  --accent: oklch(0.32 0.06 245);
+  --accent: oklch(0.29 0.008 250);
   --accent-foreground: oklch(0.97 0.004 240);
   --destructive: oklch(0.704 0.191 22.216);
   --border: oklch(1 0 0 / 10%);
@@ -184,6 +184,73 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+}
+
+/* Folder colours: <html data-folder-color> is picked at random before the
+   first paint (lib/folder-colors.ts) and switched with the arrows. Blue is
+   the default above. Light first, then dark, so .dark wins on ties. */
+:root[data-folder-color="green"] {
+  --folder: rgba(52, 176, 108, 0.98);
+  --folder-deep: rgb(35, 144, 90);
+  --folder-front: rgba(160, 235, 195, 0.6);
+  --folder-front-deep: rgba(80, 190, 130, 0.74);
+}
+:root[data-folder-color="purple"] {
+  --folder: rgba(139, 107, 234, 0.98);
+  --folder-deep: rgb(108, 79, 212);
+  --folder-front: rgba(205, 190, 255, 0.6);
+  --folder-front-deep: rgba(150, 120, 240, 0.74);
+}
+:root[data-folder-color="orange"] {
+  --folder: rgba(247, 138, 61, 0.98);
+  --folder-deep: rgb(224, 109, 34);
+  --folder-front: rgba(255, 205, 165, 0.6);
+  --folder-front-deep: rgba(248, 150, 85, 0.74);
+}
+:root[data-folder-color="graphite"] {
+  --folder: rgba(107, 117, 132, 0.98);
+  --folder-deep: rgb(83, 92, 105);
+  --folder-front: rgba(200, 208, 220, 0.6);
+  --folder-front-deep: rgba(130, 140, 155, 0.74);
+}
+.dark[data-folder-color="green"] {
+  --folder: rgba(38, 140, 86, 0.97);
+  --folder-deep: rgb(26, 110, 68);
+  --folder-front: rgba(110, 200, 150, 0.5);
+  --folder-front-deep: rgba(55, 160, 105, 0.66);
+}
+.dark[data-folder-color="purple"] {
+  --folder: rgba(112, 84, 205, 0.97);
+  --folder-deep: rgb(86, 62, 180);
+  --folder-front: rgba(165, 145, 240, 0.5);
+  --folder-front-deep: rgba(120, 95, 215, 0.66);
+}
+.dark[data-folder-color="orange"] {
+  --folder: rgba(214, 112, 44, 0.97);
+  --folder-deep: rgb(182, 88, 26);
+  --folder-front: rgba(240, 165, 115, 0.5);
+  --folder-front-deep: rgba(215, 125, 65, 0.66);
+}
+.dark[data-folder-color="graphite"] {
+  --folder: rgba(88, 97, 112, 0.97);
+  --folder-deep: rgb(66, 74, 86);
+  --folder-front: rgba(150, 160, 175, 0.5);
+  --folder-front-deep: rgba(105, 115, 130, 0.66);
+}
+
+/* Registered so a colour switch fades instead of jumping. */
+@property --folder { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --folder-deep { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --folder-front { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@property --folder-front-deep { syntax: "<color>"; inherits: true; initial-value: transparent; }
+@media (prefers-reduced-motion: no-preference) {
+  :root.folder-color-fade {
+    transition:
+      --folder 0.4s ease,
+      --folder-deep 0.4s ease,
+      --folder-front 0.4s ease,
+      --folder-front-deep 0.4s ease;
+  }
 }
 
 @layer base {
