@@ -25,6 +25,7 @@ export interface NearbyEnvelope {
 export interface NearbyMessage {
   url: string;
   title?: string;
+  password?: boolean; // opening it asks for a password
   kind: string; // the sender
 }
 

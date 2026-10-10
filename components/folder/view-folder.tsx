@@ -541,7 +541,40 @@ export function ViewFolder() {
               QR code
             </button>
           )}
-          {!burn && <NearbyButton url={pageUrl} title={data?.title} />}
+          {!burn && (
+            <NearbyButton
+              url={pageUrl}
+              title={data?.title}
+              password={data?.hasPassword}
+            />
+          )}
+          <Link href="/" className={cn(button, phoneIconOnly)}>
+            <PlusIcon />
+            <span className={phoneHidden}>New</span>
+          </Link>
+        </div>
+      )}
+      {/* Passing the link on needs no password: whoever gets it is asked
+          for one too. Burned content is already gone, so not that. */}
+      {phase === "locked" && (
+        <div className={buttonRow}>
+          {!burn && (
+            <>
+              <button
+                type="button"
+                onClick={() => qrDialog.current?.showModal()}
+                className={button}
+              >
+                <QrCodeIcon />
+                QR code
+              </button>
+              <NearbyButton
+                url={pageUrl}
+                title={data?.title}
+                password={data?.hasPassword}
+              />
+            </>
+          )}
           <Link href="/" className={cn(button, phoneIconOnly)}>
             <PlusIcon />
             <span className={phoneHidden}>New</span>

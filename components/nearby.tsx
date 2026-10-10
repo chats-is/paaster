@@ -27,10 +27,12 @@ import {
   phoneHidden,
   phoneIconOnly,
 } from "@/components/folder/folder-parts";
+import { PasswordIcon } from "@/components/icons/password-icon";
 import {
   createSelf,
   isNearbySupported,
   type NearbyEnvelope,
+  type NearbyMessage,
   type NearbyPeer,
   type NearbySelf,
   openMessage,
@@ -45,7 +47,7 @@ const POLL_MS = { watching: 2000, visible: 4000, hidden: 30000 };
 type Nearby = {
   peers: NearbyPeer[];
   watch: () => () => void;
-  send: (peer: NearbyPeer, url: string, title?: string) => Promise<void>;
+  send: (peer: NearbyPeer, link: Omit<NearbyMessage, "kind">) => Promise<void>;
 };
 
 const NearbyContext = createContext<Nearby | null>(null);
@@ -78,7 +80,28 @@ export function NearbyProvider({ children }: { children: React.ReactNode }) {
         const url = new URL(sent.pathname + sent.hash, window.location.origin);
         toast(`Link from ${message.kind}`, {
           id: envelope.iv,
-          description: message.title || url.pathname,
+          // The address (in the link colour), the password icon if it
+          // needs one, then its title.
+          description: (
+            <>
+              <span className="text-primary">{url.pathname}</span>
+              {message.password && (
+                <span title="Password needed">
+                  <PasswordIcon className="ml-1.5 inline size-4 align-[-3.5px]" />
+                  <span className="sr-only">Password needed</span>
+                </span>
+              )}
+              {message.title && (
+                <span className="ml-1.5">{message.title}</span>
+              )}
+            </>
+          ),
+          // The sender's device, as in the Nearby list.
+          icon: (
+            <span className="grid size-10 place-items-center rounded-full bg-muted text-muted-foreground [&_svg]:size-5">
+              <DeviceIcon kind={message.kind} />
+            </span>
+          ),
           duration: Infinity,
           action: {
             label: "Open",
@@ -86,11 +109,12 @@ export function NearbyProvider({ children }: { children: React.ReactNode }) {
           },
           cancel: { label: "Dismiss", onClick: () => {} },
           classNames: {
+            // Sonner's icon slot is 16px; make room for the round badge.
+            icon: "size-10! mr-1!",
             // One line each beside the buttons; long titles end in "…".
             content: "min-w-0",
             title: "truncate",
-            // The address stands apart from a title in the link colour.
-            description: cn("truncate", !message.title && "text-primary!"),
+            description: "truncate",
             // Sonner gives every button margin-left: auto, which splits the
             // free space between them; keep Open next to Dismiss.
             actionButton: "ml-2!",
@@ -193,14 +217,10 @@ export function NearbyProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const send = useCallback(
-    async (peer: NearbyPeer, url: string, title?: string) => {
+    async (peer: NearbyPeer, link: Omit<NearbyMessage, "kind">) => {
       const s = self.current;
       if (!s) throw new Error("Nearby sharing isn't ready yet");
-      const envelope = await sealMessage(s, peer, {
-        url,
-        title,
-        kind: s.kind,
-      });
+      const envelope = await sealMessage(s, peer, { ...link, kind: s.kind });
       const res = await fetch("/api/nearby/send", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -233,15 +253,18 @@ const DeviceIcon = ({ kind }: { kind: string }) =>
   );
 
 // "Nearby" button: lists devices on the same network with Paaster open, and
-// sends them `url` with a click. Renders nothing where nearby sharing can't
-// work (no Web Crypto outside a secure context).
+// sends them `url` with a click; `password` tells them they'll need one to
+// open it. Renders nothing where nearby sharing can't work (no Web Crypto
+// outside a secure context).
 export function NearbyButton({
   url,
   title,
+  password,
   className,
 }: {
   url: string;
   title?: string;
+  password?: boolean;
   className?: string;
 }) {
   const nearby = useContext(NearbyContext);
@@ -261,7 +284,7 @@ export function NearbyButton({
     if (state[peer.id]) return;
     setState((s) => ({ ...s, [peer.id]: "sending" }));
     try {
-      await send(peer, url, title);
+      await send(peer, { url, title, password });
       setState((s) => ({ ...s, [peer.id]: "sent" }));
       toast.success(`Sent to ${peer.kind}`);
       setTimeout(() => setState((s) => without(s, peer.id)), 2000);

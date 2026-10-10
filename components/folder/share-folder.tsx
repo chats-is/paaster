@@ -905,7 +905,11 @@ export function ShareFolder() {
               Open link
             </a>
           )}
-          <NearbyButton url={shareLink!} title={title.trim() || undefined} />
+          <NearbyButton
+            url={shareLink!}
+            title={title.trim() || undefined}
+            password={locked}
+          />
           <button
             type="button"
             onClick={reset}
