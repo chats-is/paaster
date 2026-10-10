@@ -462,6 +462,10 @@ export const buttonPrimary = cn(
 // A button showing "Copied": looks and acts inert until it resets.
 export const copiedButton =
   "aria-disabled:cursor-default aria-disabled:hover:translate-y-0";
+// On phones, a round icon-only button; its label goes in a <span
+// className={phoneHidden}> so screen readers still read it.
+export const phoneIconOnly = "max-sm:w-[42px] max-sm:justify-center max-sm:px-0";
+export const phoneHidden = "max-sm:sr-only";
 export const buttonRow = "mt-[18px] flex flex-wrap justify-center gap-2.5";
 export const footnote =
   "mx-auto mt-3 max-w-[460px] text-center text-[12.5px] text-balance text-muted-foreground";

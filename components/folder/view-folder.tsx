@@ -37,6 +37,8 @@ import {
   iconButton,
   NoteSheet,
   paperDialog,
+  phoneHidden,
+  phoneIconOnly,
   PhotoSheet,
   SheetAction,
   SheetCard,
@@ -538,9 +540,9 @@ export function ViewFolder() {
               QR code
             </button>
           )}
-          <Link href="/" className={button}>
+          <Link href="/" className={cn(button, phoneIconOnly)}>
             <PlusIcon />
-            New
+            <span className={phoneHidden}>New</span>
           </Link>
         </div>
       )}

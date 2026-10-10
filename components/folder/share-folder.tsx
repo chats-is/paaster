@@ -40,6 +40,8 @@ import {
   iconButton,
   NoteSheet,
   paperDialog,
+  phoneHidden,
+  phoneIconOnly,
   PhotoSheet,
   SheetAction,
   sheetButton,
@@ -902,9 +904,13 @@ export function ShareFolder() {
               Open link
             </a>
           )}
-          <button type="button" onClick={reset} className={button}>
+          <button
+            type="button"
+            onClick={reset}
+            className={cn(button, phoneIconOnly)}
+          >
             <PlusIcon />
-            New
+            <span className={phoneHidden}>New</span>
           </button>
         </div>
       )}
