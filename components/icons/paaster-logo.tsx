@@ -13,10 +13,14 @@ const FRONT =
 // inside, the frosted front, a one-line title pill and the yellow expiry
 // sticker. 48 × 48 grid, drawing fills the 40-wide live area and is centred.
 // Same drawing as public/logo.svg.
+// Fixed gradient ids rather than useId(): those depend on the component's
+// place in the tree and come out different on the server and the client
+// whenever the tree differs, breaking hydration. Every copy of the logo draws
+// the same gradients, so sharing an id between copies is harmless.
+const back = "paaster-logo-back";
+const front = "paaster-logo-front";
+
 export function PaasterLogo({ size = 26, ...props }: PaasterLogoProps) {
-  const id = React.useId();
-  const back = `${id}-back`;
-  const front = `${id}-front`;
   return (
     <svg
       xmlns="http://www.w3.org/2000/svg"
