@@ -299,8 +299,9 @@ export function ViewFolder() {
               : "Decrypted in your browser"}
             {data?.expiresAt && (
               <>
-                {" · "}
-                <b className={expiryText}>
+                {" "}
+                {/* its own line on phones */}
+                <b className={cn(expiryText, "max-sm:block")}>
                   Expires {formatDate(data.expiresAt)}
                 </b>
               </>
