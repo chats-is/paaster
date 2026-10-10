@@ -113,7 +113,11 @@ export function ViewFolder() {
   const [fragment, setFragment] = useState<string>();
   const [data, setData] = useState<Content>();
   const [phase, setPhase] = useState<Phase>("loading");
-  const [error, setError] = useState<{ title: string; detail: string }>();
+  const [error, setError] = useState<{
+    title: string;
+    detail: string;
+    status?: number | "ERR";
+  }>();
   const [password, setPassword] = useState("");
   const [unlocking, setUnlocking] = useState(false);
   const [wrong, setWrong] = useState(false);
@@ -186,6 +190,7 @@ export function ViewFolder() {
             detail:
               (await res.text()) ||
               "It may have expired or been burned after reading.",
+            status: res.status,
           });
           return;
         }
@@ -201,6 +206,7 @@ export function ViewFolder() {
           title: "Couldn't open this content",
           detail:
             "The link may be incomplete. Make sure you copied all of it, including the part after #.",
+          status: "ERR",
         });
       }
     })();
@@ -221,7 +227,7 @@ export function ViewFolder() {
     }
   };
 
-  if (error) return <ErrorFolder title={error.title} detail={error.detail} />;
+  if (error) return <ErrorFolder {...error} />;
 
   const attachments = data?.attachments ?? [];
   const open = phase === "open";

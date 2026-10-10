@@ -351,12 +351,15 @@ export function Sticker({
   burn,
   num,
   unit,
+  label,
   className,
   ...props
 }: {
   burn: boolean;
   num: React.ReactNode;
   unit: React.ReactNode;
+  // The small line on top, in place of "EXPIRES IN" / "BURN AFTER".
+  label?: React.ReactNode;
 } & React.ComponentProps<"button">) {
   const classes = cn(
     "absolute top-[244px] right-[34px] z-[5] grid size-[82px] rotate-8 content-center justify-items-center gap-px rounded-full bg-[radial-gradient(circle_at_35%_30%,#fff1b8,var(--color-sticker)_60%,#f0b90f)] text-[#3b2a00] shadow-[0_3px_6px_rgba(10,30,70,.28),inset_0_-2px_3px_rgba(0,0,0,.12)] transition-[rotate,scale] data-[burn=true]:bg-[radial-gradient(circle_at_35%_30%,#ff9d86,#f0543a_60%,#c7321c)] data-[burn=true]:text-white",
@@ -366,7 +369,7 @@ export function Sticker({
   const face = (
     <>
       <small className="font-mono text-[8px] font-semibold tracking-[.12em] opacity-70">
-        {burn ? "BURN AFTER" : "EXPIRES IN"}
+        {label ?? (burn ? "BURN AFTER" : "EXPIRES IN")}
       </small>
       <b className="text-[22px] leading-none font-bold tracking-tight">
         {burn ? (

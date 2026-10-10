@@ -5,6 +5,7 @@ export default function NotFound() {
     <ErrorFolder
       title="This content isn't available"
       detail="It doesn't exist, has expired, or was burned after reading."
+      status={404}
     />
   );
 }
