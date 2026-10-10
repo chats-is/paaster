@@ -59,7 +59,10 @@ function ThemeToggle() {
 }
 
 // Full-screen desk every page sits on: brand at the top left, theme toggle
-// at the top right, then a centred heading.
+// at the top right, then a centred heading. It grows with its content and
+// the page itself scrolls: in a fixed box that scrolls on its own, mobile
+// browsers hide their toolbar when you scroll down but don't bring it back
+// when you scroll up again, leaving the header stuck underneath it.
 export function DeskPage({
   title,
   subtitle,
@@ -73,7 +76,7 @@ export function DeskPage({
   return (
     <div
       {...props}
-      className="fixed inset-0 z-40 overflow-x-hidden overflow-y-auto bg-desk bg-[radial-gradient(120%_70%_at_50%_0%,var(--color-desk-hi),var(--color-desk)_60%)] bg-fixed px-4 pb-12 text-sm text-foreground antialiased [&_:focus-visible]:outline-2 [&_:focus-visible]:outline-offset-2 [&_:focus-visible]:outline-primary motion-reduce:[&_*]:animate-none motion-reduce:[&_*]:transition-none"
+      className="absolute inset-x-0 top-0 z-40 min-h-full overflow-x-clip bg-desk bg-[radial-gradient(120%_70%_at_50%_0%,var(--color-desk-hi),var(--color-desk)_60%)] bg-fixed px-4 pb-12 text-sm text-foreground antialiased [&_:focus-visible]:outline-2 [&_:focus-visible]:outline-offset-2 [&_:focus-visible]:outline-primary motion-reduce:[&_*]:animate-none motion-reduce:[&_*]:transition-none"
     >
       <header className="mx-auto flex h-15 max-w-[760px] items-center justify-between">
         <Link
