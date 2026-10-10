@@ -13,7 +13,6 @@ export class VercelStorage implements StorageProvider {
   }
 
   async delete(url: string) {
-    const pathname = new URL(url).pathname.slice(1);
-    await del(pathname);
+    await del(url);
   }
 }

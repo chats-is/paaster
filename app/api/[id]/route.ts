@@ -25,9 +25,11 @@ export async function GET(
     await redis.expire(lockKey, 60);
     await redis.del(`paaster:${id}`);
 
+    // The files stay up for an hour after opening, so even large ones on a
+    // slow connection finish downloading.
     if (data.attachments && data.attachments.length > 0) {
       const [first, ...rest] = data.attachments.map((attachment) => ({
-        score: new Date().getTime() + 5 * 60 * 1000,
+        score: new Date().getTime() + 60 * 60 * 1000,
         member: attachment.data,
       }));
       await redis.zadd("paaster:files", first, ...rest);

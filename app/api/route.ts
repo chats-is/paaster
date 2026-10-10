@@ -11,6 +11,10 @@ import { storage } from "@/lib/storage";
 import { Attachment, Content } from "@/lib/types";
 import { generateId, parseExpires } from "@/lib/utils";
 
+// Burn-after-read content is deleted when it's first opened; this is how long
+// it's kept if nobody ever does.
+const BURN_MAX_AGE = 7 * 86400;
+
 export async function POST(req: NextRequest) {
   const formData = await req.formData();
   const text = formData.get("text") as string | undefined;
@@ -27,6 +31,7 @@ export async function POST(req: NextRequest) {
   if (!ttl && !burnAfterRead) {
     return new Response("Expires is invalid", { status: 400 });
   }
+  const maxAge = ttl ?? BURN_MAX_AGE;
 
   let id = generateId();
   while (await redis.exists(`paaster:${id}`)) {
@@ -50,24 +55,40 @@ export async function POST(req: NextRequest) {
 
     const uploadPath = process.env.UPLOAD_PATH || "paaster";
 
-    for (let i = 0; i < attachmentData.length; i++) {
-      const file = attachmentData[i];
-      const name = attachmentNames[i];
-      const size = attachmentSizes[i];
+    try {
+      for (let i = 0; i < attachmentData.length; i++) {
+        const file = attachmentData[i];
+        const name = attachmentNames[i];
+        const size = attachmentSizes[i];
 
-      if (!name || size === undefined) {
-        continue;
+        if (!name || size === undefined) {
+          continue;
+        }
+
+        const pathname = path.join(uploadPath, "encrypted", `${id}-${i}.bin`);
+        const url = await storage.upload(pathname, file, {
+          cacheMaxAge: ttl || 3600,
+        });
+
+        attachments.push({
+          data: url,
+          name,
+          size: parseFloat(size),
+        });
       }
-
-      const pathname = path.join(uploadPath, "encrypted", `${id}-${i}.bin`);
-      const url = await storage.upload(pathname, file, {
-        cacheMaxAge: ttl || 3600,
-      });
-
-      attachments.push({
-        data: url,
-        name,
-        size: parseFloat(size),
+    } catch (err) {
+      console.error(err);
+      // The files that did upload belong to nothing now; have the next
+      // cleanup remove them.
+      if (attachments.length > 0) {
+        const [first, ...rest] = attachments.map((attachment) => ({
+          score: Date.now(),
+          member: attachment.data,
+        }));
+        await redis.zadd("paaster:files", first, ...rest);
+      }
+      return new Response("Uploading files failed — please try again", {
+        status: 500,
       });
     }
   }
@@ -90,15 +111,17 @@ export async function POST(req: NextRequest) {
     expiresAt: expiresAt,
   };
 
-  if (!burnAfterRead && expiresAt && attachments.length > 0) {
+  // Files are deleted when the content expires. Opening burn-after-read
+  // content brings that forward to an hour later (see api/[id]).
+  if (attachments.length > 0) {
     const [first, ...rest] = attachments.map((attachment) => ({
-      score: new Date(expiresAt).getTime(),
+      score: Date.now() + maxAge * 1000,
       member: attachment.data,
     }));
     await redis.zadd("paaster:files", first, ...rest);
   }
 
-  await redis.set(`paaster:${id}`, content, ttl ? { ex: ttl } : {});
+  await redis.set(`paaster:${id}`, content, { ex: maxAge });
 
   return NextResponse.json(content);
 }

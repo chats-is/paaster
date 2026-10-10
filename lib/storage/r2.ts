@@ -57,7 +57,8 @@ export class R2Storage implements StorageProvider {
   }
 
   async delete(url: string) {
-    const key = new URL(url).pathname.slice(1);
+    // The URL path is percent-encoded; the key is not.
+    const key = decodeURIComponent(new URL(url).pathname.slice(1));
     await this.client.send(
       new DeleteObjectCommand({ Bucket: this.bucket, Key: key })
     );

@@ -14,7 +14,7 @@
 - **End-to-end encryption** — text and files are encrypted client-side with AES-128-GCM via the Web Crypto API. The decryption key lives only in the URL fragment (`#...`), which browsers never send to the server.
 - **Code editor with syntax highlighting** — CodeMirror 6 with support for 17 languages (Markdown, Python, JavaScript/TypeScript, Java, SQL, HTML, CSS, C/C++, Go, PHP, Rust, JSON, YAML, XML, and plain text).
 - **File attachments** — share multiple encrypted files alongside (or instead of) text. File count and total size limits are configurable.
-- **Flexible expiration** — 10/30 minutes, 1/6/12 hours, 1/3/7 days, or **burn after read** (deleted the moment it's first viewed).
+- **Flexible expiration** — 10/30 minutes, 1/6/12 hours, 1/3/7 days, or **burn after read** (deleted the moment it's first viewed, or after 7 days if nobody opens it).
 - **Optional password protection** — a 6–12 character password is mixed into the encryption parameters client-side, so even someone with the link can't decrypt without it.
 - **QR code sharing** — instantly share a paste with another device.
 - **Pluggable storage** — attachments go to Vercel Blob or Cloudflare R2; metadata and ciphertext live in Redis with native TTL expiry.
@@ -33,7 +33,7 @@
 
 4. The fragment (`#...`) is never included in HTTP requests, so the server stores ciphertext it cannot decrypt.
 5. If a password is set, it is folded into the IV derivation client-side — the password itself is never transmitted; the server only stores a `hasPassword` flag.
-6. For burn-after-read pastes, the record is deleted atomically on first fetch (a Redis lock prevents double reads), and any attachments are queued for deletion shortly after.
+6. For burn-after-read pastes, the record is deleted atomically on first fetch (a Redis lock prevents double reads), and any attachments are queued for deletion shortly after. Unopened ones expire after 7 days.
 
 ## Tech stack
 
@@ -117,7 +117,7 @@ All settings live in `.env.local` (see [`.env.example`](.env.example) for the fu
 
 | Variable | Description |
 | --- | --- |
-| `CRON_SECRET` | Bearer token required to call `GET /api/cron` (expired-file cleanup) |
+| `CRON_SECRET` | Bearer token required to call `GET /api/cron` (expired-file cleanup); the endpoint refuses every call while it's unset |
 
 ## Deployment
 
