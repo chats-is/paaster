@@ -76,31 +76,49 @@ export function DeskPage({
   return (
     <div
       {...props}
-      className="absolute inset-x-0 top-0 z-40 min-h-full overflow-x-clip bg-desk bg-[radial-gradient(120%_70%_at_50%_0%,var(--color-desk-hi),var(--color-desk)_60%)] bg-fixed px-4 pb-12 text-sm text-foreground antialiased [&_:focus-visible]:outline-2 [&_:focus-visible]:outline-offset-2 [&_:focus-visible]:outline-primary motion-reduce:[&_*]:animate-none motion-reduce:[&_*]:transition-none"
+      className="absolute inset-x-0 top-0 z-40 flex min-h-full flex-col overflow-x-clip bg-desk bg-[radial-gradient(120%_70%_at_50%_0%,var(--color-desk-hi),var(--color-desk)_60%)] bg-fixed px-4 pb-6 text-sm text-foreground antialiased [&_:focus-visible]:outline-2 [&_:focus-visible]:outline-offset-2 [&_:focus-visible]:outline-primary motion-reduce:[&_*]:animate-none motion-reduce:[&_*]:transition-none"
     >
-      <header className="mx-auto flex h-15 max-w-[760px] items-center justify-between">
-        <Link
-          href="/"
-          className="flex items-center gap-2.5 text-base font-semibold tracking-tight"
-        >
-          <PaasterLogo size={24} className="translate-y-[0.375px]" />
-          Paaster
-        </Link>
-        <ThemeToggle />
-      </header>
+      {/* everything but the footer, stretched so the footer sits at the
+          bottom of a short page */}
+      <div className="flex-1">
+        <header className="mx-auto flex h-15 max-w-[760px] items-center justify-between">
+          <Link
+            href="/"
+            className="flex items-center gap-2.5 text-base font-semibold tracking-tight"
+          >
+            <PaasterLogo size={24} className="translate-y-[0.375px]" />
+            Paaster
+          </Link>
+          <ThemeToggle />
+        </header>
 
-      <div className="mx-auto mt-8 max-w-[520px] text-center">
-        {/* Fixed-height heading (one-line title, two-line subtitle) so the
-            folder sits in the same place on every page and state. */}
-        <h1 className="truncate text-[clamp(20px,3.6vw,24px)]/[1.25] font-semibold tracking-tight">
-          {title}
-        </h1>
-        <p className="mt-1 min-h-10 text-sm/5 text-balance text-muted-foreground sm:line-clamp-2 sm:h-10">
-          {subtitle}
-        </p>
+        <div className="mx-auto mt-8 max-w-[520px] text-center">
+          {/* Fixed-height heading (one-line title, two-line subtitle) so the
+              folder sits in the same place on every page and state. */}
+          <h1 className="truncate text-[clamp(20px,3.6vw,24px)]/[1.25] font-semibold tracking-tight">
+            {title}
+          </h1>
+          <p className="mt-1 min-h-10 text-sm/5 text-balance text-muted-foreground sm:line-clamp-2 sm:h-10">
+            {subtitle}
+          </p>
+        </div>
+
+        {children}
       </div>
 
-      {children}
+      {/* lined up with the header: copyright on the left, source on the
+          right */}
+      <footer className="mx-auto flex w-full max-w-[760px] flex-wrap items-center justify-between gap-x-5 gap-y-1 pt-12 text-xs text-muted-foreground">
+        <span>© {new Date().getFullYear()} Paaster</span>
+        <a
+          href="https://github.com/chats-is/paaster"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="transition-colors hover:text-foreground"
+        >
+          Open source on GitHub
+        </a>
+      </footer>
     </div>
   );
 }
