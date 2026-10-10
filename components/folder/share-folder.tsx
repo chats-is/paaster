@@ -50,6 +50,7 @@ import {
   Sticker,
 } from "@/components/folder/folder-parts";
 import { PasswordIcon } from "@/components/icons/password-icon";
+import { NearbyButton } from "@/components/nearby";
 import {
   MAX_FILE_COUNT,
   MAX_TOTAL_SIZE_BYTES,
@@ -904,6 +905,7 @@ export function ShareFolder() {
               Open link
             </a>
           )}
+          <NearbyButton url={shareLink!} title={title.trim() || undefined} />
           <button
             type="button"
             onClick={reset}

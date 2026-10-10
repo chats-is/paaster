@@ -46,6 +46,7 @@ import {
   Sticker,
 } from "@/components/folder/folder-parts";
 import { PasswordIcon } from "@/components/icons/password-icon";
+import { NearbyButton } from "@/components/nearby";
 import { decryptContent } from "@/lib/crypto";
 import { Content } from "@/lib/types";
 import { cn, formatSize } from "@/lib/utils";
@@ -540,6 +541,7 @@ export function ViewFolder() {
               QR code
             </button>
           )}
+          {!burn && <NearbyButton url={pageUrl} title={data?.title} />}
           <Link href="/" className={cn(button, phoneIconOnly)}>
             <PlusIcon />
             <span className={phoneHidden}>New</span>

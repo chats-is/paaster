@@ -5,6 +5,7 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import { ThemeProvider } from "next-themes";
 
+import { NearbyProvider } from "@/components/nearby";
 import { Toaster } from "@/components/ui/sonner";
 import { deskLookScript } from "@/lib/desk-style";
 import { stageScaleScript } from "@/lib/stage";
@@ -61,7 +62,9 @@ export default function RootLayout({
         )}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <div className="flex-1 p-1.5 sm:p-3">{children}</div>
+          <NearbyProvider>
+            <div className="flex-1 p-1.5 sm:p-3">{children}</div>
+          </NearbyProvider>
           <Toaster position="top-center" richColors />
           <Analytics />
         </ThemeProvider>
