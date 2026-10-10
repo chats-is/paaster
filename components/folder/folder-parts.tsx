@@ -89,7 +89,7 @@ export function DeskPage({
         <ThemeToggle />
       </header>
 
-      <div className="mx-auto mt-1 max-w-[520px] text-center">
+      <div className="mx-auto mt-8 max-w-[520px] text-center">
         {/* Fixed-height heading (one-line title, two-line subtitle) so the
             folder sits in the same place on every page and state. */}
         <h1 className="truncate text-[clamp(20px,3.6vw,24px)]/[1.25] font-semibold tracking-tight">
