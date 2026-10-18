@@ -11,6 +11,7 @@ import {
   FileSpreadsheetIcon,
   FileTextIcon,
   FileVideoIcon,
+  FileXIcon,
   MonitorIcon,
   MoonIcon,
   PresentationIcon,
@@ -282,7 +283,28 @@ export function DocSheet({ name, size }: { name: string; size: string }) {
       <span className="absolute bottom-6 left-3 font-mono text-[10px] text-paper-foreground-muted">
         {size}
       </span>
-      <span className={caption}>{name}</span>
+      <span className={cn(caption, "left-3")}>{name}</span>
+    </span>
+  );
+}
+
+// A sheet for content that couldn't be shown: laid out like DocSheet, with
+// the status in place of the file type, a crossed-out file, and what went
+// wrong where the size goes (there's no file name).
+export function ErrorSheet({ code, note }: { code: string; note: string }) {
+  return (
+    <span className="absolute inset-0 overflow-hidden rounded-lg bg-paper">
+      <span className="absolute top-2 left-[11px] font-mono text-xs font-bold tracking-[.06em] text-[#e5484d] uppercase">
+        {code}
+      </span>
+      <FileXIcon
+        strokeWidth={1.5}
+        className="absolute top-[30px] left-1/2 size-14 -translate-x-1/2 text-[#e5484d]"
+      />
+      <span className="absolute top-[96px] right-[18px] left-3 h-[36px] bg-[repeating-linear-gradient(180deg,#e4e9ef_0_3px,transparent_3px_11px)]" />
+      <span className="absolute bottom-6 left-3 font-mono text-[10px] text-paper-foreground-muted">
+        {note}
+      </span>
     </span>
   );
 }
@@ -300,7 +322,8 @@ export function Sticker({
   burn: boolean;
   num: React.ReactNode;
   unit: React.ReactNode;
-  // The small line on top, in place of "EXPIRES IN" / "BURN AFTER".
+  // The small line on top, in place of "EXPIRES IN" / "BURN AFTER"; ""
+  // leaves it out.
   label?: React.ReactNode;
 } & React.ComponentProps<"button">) {
   const classes = cn(
@@ -310,9 +333,11 @@ export function Sticker({
   );
   const face = (
     <>
-      <small className="font-mono text-[8px] font-semibold tracking-[.12em] opacity-70">
-        {label ?? (burn ? "BURN AFTER" : "EXPIRES IN")}
-      </small>
+      {label !== "" && (
+        <small className="font-mono text-[8px] font-semibold tracking-[.12em] opacity-70">
+          {label ?? (burn ? "BURN AFTER" : "EXPIRES IN")}
+        </small>
+      )}
       <b className="text-[22px] leading-none font-bold tracking-tight">
         {burn ? (
           "READ"

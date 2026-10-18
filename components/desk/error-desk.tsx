@@ -8,7 +8,11 @@ import {
   buttonRow,
   Desk,
   DeskPage,
+  ErrorSheet,
+  fanStyle,
   frontCard,
+  SheetCard,
+  Sheets,
   Sticker,
 } from "@/components/desk/desk-parts";
 import { cn } from "@/lib/utils";
@@ -19,9 +23,10 @@ const STATUS: Record<string, string> = {
   ERR: "CAN'T OPEN",
 };
 
-// An empty desk with a note in front explaining what went wrong;
-// with a `status` (an HTTP status, or ERR when the content couldn't be opened
-// at all), it's on the sticker where the expiry would be.
+// The desk with a single error sheet on it and a note in front explaining
+// what went wrong; with a `status` (an HTTP status, or ERR when the content
+// couldn't be opened at all), the sheet names it and the sticker, where the
+// expiry would be, shows just the status.
 export function ErrorDesk({
   title,
   detail,
@@ -34,6 +39,23 @@ export function ErrorDesk({
   return (
     <DeskPage title={title} subtitle={detail}>
       <Desk
+        inside={
+          <Sheets>
+            <SheetCard
+              label="Content unavailable"
+              disabled
+              // just shows the status: no hover lift
+              className="pointer-events-none animate-sheet-rise"
+              style={fanStyle(0, 1)}
+              onClick={() => {}}
+            >
+              <ErrorSheet
+                code={status ? String(status) : "ERROR"}
+                note={(status && STATUS[status]) || "CAN'T SHOW"}
+              />
+            </SheetCard>
+          </Sheets>
+        }
         onFront={
           <>
             <div className={cn(frontCard, "h-[70px] content-center")}>
@@ -49,7 +71,7 @@ export function ErrorDesk({
                 burn={false}
                 num={status}
                 unit=""
-                label={STATUS[status] ?? "ERROR"}
+                label=""
                 title={status === "ERR" ? "Couldn't open" : `Error ${status}`}
               />
             )}
@@ -59,7 +81,7 @@ export function ErrorDesk({
       <div className={buttonRow}>
         <Link href="/" className={buttonPrimary}>
           <PlusIcon />
-          Share something new
+          New
         </Link>
       </div>
     </DeskPage>
