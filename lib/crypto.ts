@@ -21,9 +21,12 @@ export function generateFragment(key: Uint8Array, iv: Uint8Array): string {
   return fragment;
 }
 
+// Byte arrays handed to Web Crypto must be backed by a plain ArrayBuffer.
+type Bytes = Uint8Array<ArrayBuffer>;
+
 export function decodeFragment(fragment: string): {
-  keyBytes: Uint8Array;
-  iv: Uint8Array;
+  keyBytes: Bytes;
+  iv: Bytes;
 } {
   let num = BigInt(0);
   for (let i = fragment.length - 1, pow = 1n; i >= 0; i--, pow *= 62n) {
@@ -46,7 +49,7 @@ export function decodeFragment(fragment: string): {
   };
 }
 
-function generateIv(iv: Uint8Array, password?: string): Uint8Array {
+function generateIv(iv: Bytes, password?: string): Bytes {
   if (!password) {
     return iv;
   }
@@ -132,7 +135,7 @@ export async function decryptContent<T extends string | Blob>(
       throw new Error("Failed to import encryption key");
     });
 
-  let encryptedBytes: Uint8Array;
+  let encryptedBytes: Bytes;
 
   if (typeof encryptedData === "string") {
     encryptedBytes = new Uint8Array(
