@@ -19,7 +19,6 @@ import { QRCodeSVG } from "qrcode.react";
 import { useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { Editor } from "@/components/editor";
 import {
   button,
   buttonPrimary,
@@ -27,6 +26,7 @@ import {
   copiedButton,
   CopyButton,
   copyImage,
+  Desk,
   DeskPage,
   dialog,
   DocSheet,
@@ -34,7 +34,6 @@ import {
   expiryText,
   fanStyle,
   fileExt,
-  Folder,
   footnote,
   frontCard,
   iconButton,
@@ -48,7 +47,8 @@ import {
   SheetCard,
   Sheets,
   Sticker,
-} from "@/components/folder/folder-parts";
+} from "@/components/desk/desk-parts";
+import { Editor } from "@/components/editor";
 import { PasswordIcon } from "@/components/icons/password-icon";
 import { NearbyButton } from "@/components/nearby";
 import {
@@ -72,7 +72,8 @@ const EXPIRES = [
 
 type Entry = { file: File; preview?: string };
 type Pop = "add" | "addBar" | "expiry" | null;
-// open → sealing (contents slide in) → closed (front rises, strap on) → sent
+// open → sealing (sheets draw together while it publishes) → closed
+// (published) → sent (the link card is shown)
 type Phase = "open" | "sealing" | "closed" | "sent";
 
 // Clipboard images always arrive as "image.png"; name them so repeated
@@ -93,7 +94,7 @@ const wait = (ms: number) =>
     ),
   );
 
-export function ShareFolder() {
+export function ShareDesk() {
   const [title, setTitle] = useState("");
   const [text, setText] = useState("");
   const [format, setFormat] = useState("plaintext");
@@ -103,7 +104,6 @@ export function ShareFolder() {
   const [phase, setPhase] = useState<Phase>("open");
   const [shareLink, setShareLink] = useState<string>();
   const [pop, setPop] = useState<Pop>(null);
-  const [dragging, setDragging] = useState(false);
   const [fresh, setFresh] = useState<Set<string>>(new Set());
 
   const fileInput = useRef<HTMLInputElement>(null);
@@ -250,7 +250,7 @@ export function ShareFolder() {
     sheet.current?.close();
   };
 
-  /* ---------- closing the folder = encrypt + publish ---------- */
+  /* ---------- sealing the desk = encrypt + publish ---------- */
   const publish = async () => {
     const content = text.trim() ? text : undefined;
     const files = entries.map((e) => e.file);
@@ -345,7 +345,7 @@ export function ShareFolder() {
   handlers.current = {
     paste: (e) => {
       if (busy || !e.clipboardData) return;
-      if (document.querySelector("[data-share-folder] dialog[open]")) return;
+      if (document.querySelector("[data-share-desk] dialog[open]")) return;
       const data = e.clipboardData;
       const pasted = Array.from(data.files);
       const pastedText = data.getData("text/plain");
@@ -370,7 +370,7 @@ export function ShareFolder() {
       if (
         e.key === "Enter" &&
         (e.metaKey || e.ctrlKey) &&
-        !document.querySelector("[data-share-folder] dialog[open]")
+        !document.querySelector("[data-share-desk] dialog[open]")
       ) {
         e.preventDefault();
         seal();
@@ -379,30 +379,18 @@ export function ShareFolder() {
   };
 
   useEffect(() => {
-    let depth = 0;
     const hasFiles = (e: DragEvent) =>
       !!e.dataTransfer?.types.includes("Files");
     const onPaste = (e: ClipboardEvent) => handlers.current.paste(e);
     const onKey = (e: KeyboardEvent) => handlers.current.key(e);
-    const onDragEnter = (e: DragEvent) => {
-      if (!hasFiles(e)) return;
-      e.preventDefault();
-      depth++;
-      setDragging(true);
-    };
+    // Files can be dropped anywhere on the page: accept the drag on enter
+    // and over.
     const onDragOver = (e: DragEvent) => {
       if (hasFiles(e)) e.preventDefault();
-    };
-    const onDragLeave = (e: DragEvent) => {
-      if (!hasFiles(e)) return;
-      depth = Math.max(0, depth - 1);
-      if (depth === 0) setDragging(false);
     };
     const onDrop = (e: DragEvent) => {
       if (!hasFiles(e)) return;
       e.preventDefault();
-      depth = 0;
-      setDragging(false);
       handlers.current.drop(Array.from(e.dataTransfer?.files ?? []));
     };
     // React listens on the document too, so stopPropagation in a popover
@@ -411,7 +399,7 @@ export function ShareFolder() {
     const onDocClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
       if (
-        !target?.closest("[data-share-folder] :is([data-popover], [data-pop])")
+        !target?.closest("[data-share-desk] :is([data-popover], [data-pop])")
       ) {
         setPop(null);
       }
@@ -420,17 +408,15 @@ export function ShareFolder() {
     document.addEventListener("paste", onPaste);
     document.addEventListener("click", onDocClick);
     window.addEventListener("keydown", onKey);
-    window.addEventListener("dragenter", onDragEnter);
+    window.addEventListener("dragenter", onDragOver);
     window.addEventListener("dragover", onDragOver);
-    window.addEventListener("dragleave", onDragLeave);
     window.addEventListener("drop", onDrop);
     return () => {
       document.removeEventListener("paste", onPaste);
       document.removeEventListener("click", onDocClick);
       window.removeEventListener("keydown", onKey);
-      window.removeEventListener("dragenter", onDragEnter);
+      window.removeEventListener("dragenter", onDragOver);
       window.removeEventListener("dragover", onDragOver);
-      window.removeEventListener("dragleave", onDragLeave);
       window.removeEventListener("drop", onDrop);
     };
   }, []);
@@ -463,7 +449,7 @@ export function ShareFolder() {
   };
   const url = shareLink ? new URL(shareLink) : undefined;
 
-  // Same menu behind the + in the folder and the "Add content" button;
+  // Same menu behind the + on the desk and the "Add content" button;
   // each opens next to its own trigger.
   const addMenu = (className: string) => (
     <div data-popover role="menu" className={cn(menu, "w-64", className)}>
@@ -522,7 +508,7 @@ export function ShareFolder() {
 
   return (
     <DeskPage
-      data-share-folder
+      data-share-desk
       title={
         phase === "sent"
           ? "Your share link is ready"
@@ -534,14 +520,12 @@ export function ShareFolder() {
           : "Paste or drop files and text here. Once published, only people with the link can open them."
       }
     >
-      <Folder
-        sealing={busy}
-        sealed={closed}
-        drag={dragging && !busy}
+      <Desk
+        sealed={busy}
         inside={
           <>
             {n === 0 && !busy && (
-              <div className="absolute top-11 left-40 z-[6] grid w-[200px] justify-items-center gap-1 text-center text-[13px] text-white desk-stack:text-muted-foreground">
+              <div className="absolute top-[100px] left-[180px] z-[6] grid w-[200px] justify-items-center gap-1 text-center text-[13px] text-muted-foreground">
                 <button
                   type="button"
                   aria-label="Add content"
@@ -549,12 +533,12 @@ export function ShareFolder() {
                   aria-expanded={pop === "add"}
                   data-pop
                   onClick={togglePop("add")}
-                  className="mb-1 grid size-8 cursor-pointer place-items-center rounded-full border-[1.5px] border-dashed border-white/80 text-white transition-[rotate,background-color,border-color] duration-250 hover:rotate-90 hover:border-solid hover:border-white hover:bg-white/20 aria-expanded:rotate-90 aria-expanded:border-solid aria-expanded:border-white aria-expanded:bg-white/20 desk-stack:border-current/60 desk-stack:text-foreground/70 desk-stack:hover:border-current/60 desk-stack:hover:bg-foreground/8 desk-stack:aria-expanded:border-current/60 desk-stack:aria-expanded:bg-foreground/8 [&_svg]:size-[15px]"
+                  className="mb-1 grid size-8 cursor-pointer place-items-center rounded-full border-[1.5px] border-dashed border-current/60 text-foreground/70 transition-[rotate,background-color] duration-250 hover:rotate-90 hover:border-solid hover:bg-foreground/8 aria-expanded:rotate-90 aria-expanded:border-solid aria-expanded:bg-foreground/8 [&_svg]:size-[15px]"
                 >
                   <PlusIcon />
                 </button>
                 <span>Add files or text</span>
-                <small className="text-[11.5px] text-white/80 desk-stack:text-current desk-stack:opacity-80">
+                <small className="text-[11.5px] opacity-80">
                   Drop, paste or click + to add
                 </small>
                 {pop === "add" &&
@@ -654,7 +638,7 @@ export function ShareFolder() {
             {phase !== "sent" && (
               <div className={cn(frontCard, "h-[70px] content-center")}>
                 <input
-                  id="folder-title"
+                  id="share-title"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   disabled={busy}
@@ -688,7 +672,7 @@ export function ShareFolder() {
               data-set={locked}
               data-bad={passwordInvalid}
               data-hide={closed && !locked}
-              className="group/pw absolute top-[178px] right-[53px] z-[5] flex h-11 w-11 cursor-pointer items-center gap-2 overflow-hidden rounded-full bg-white bg-[radial-gradient(circle_at_35%_28%,#ffffff,#eaf1fb_45%,#bfd3ee)] shadow-[0_3px_6px_rgba(10,30,70,.28),inset_0_-2px_3px_rgba(20,50,100,.16)] px-2.5 whitespace-nowrap text-folder-deep desk-stack:text-[#2c74da] transition-[width,background-color,color,box-shadow] duration-300 ease-[cubic-bezier(.4,0,.2,1)] data-[hide=true]:hidden hover:w-[236px] hover:cursor-text hover:bg-white hover:bg-none hover:text-paper-foreground hover:shadow-[0_2px_6px_rgba(10,30,70,.22)] focus-within:w-[236px] focus-within:cursor-text focus-within:bg-white focus-within:bg-none focus-within:text-paper-foreground focus-within:shadow-[0_2px_6px_rgba(10,30,70,.22)] data-[bad=true]:w-[236px] data-[bad=true]:bg-white data-[bad=true]:bg-none data-[bad=true]:text-paper-foreground data-[set=true]:not-hover:not-focus-within:bg-band data-[set=true]:not-hover:not-focus-within:bg-[radial-gradient(circle_at_35%_28%,#56627a,#1c2433_58%,#0b0f17)] data-[set=true]:not-hover:not-focus-within:text-white data-[set=true]:not-hover:not-focus-within:shadow-[0_3px_6px_rgba(10,30,70,.32),inset_0_-2px_3px_rgba(0,0,0,.35)]"
+              className="group/pw absolute top-[234px] right-[73px] z-[5] flex h-11 w-11 cursor-pointer items-center gap-2 overflow-hidden rounded-full bg-white bg-[radial-gradient(circle_at_35%_28%,#ffffff,#eaf1fb_45%,#bfd3ee)] shadow-[0_3px_6px_rgba(10,30,70,.28),inset_0_-2px_3px_rgba(20,50,100,.16)] px-2.5 whitespace-nowrap text-[#2c74da] transition-[width,background-color,color,box-shadow] duration-300 ease-[cubic-bezier(.4,0,.2,1)] data-[hide=true]:hidden hover:w-[236px] hover:cursor-text hover:bg-white hover:bg-none hover:text-paper-foreground hover:shadow-[0_2px_6px_rgba(10,30,70,.22)] focus-within:w-[236px] focus-within:cursor-text focus-within:bg-white focus-within:bg-none focus-within:text-paper-foreground focus-within:shadow-[0_2px_6px_rgba(10,30,70,.22)] data-[bad=true]:w-[236px] data-[bad=true]:bg-white data-[bad=true]:bg-none data-[bad=true]:text-paper-foreground data-[set=true]:not-hover:not-focus-within:bg-band data-[set=true]:not-hover:not-focus-within:bg-[radial-gradient(circle_at_35%_28%,#56627a,#1c2433_58%,#0b0f17)] data-[set=true]:not-hover:not-focus-within:text-white data-[set=true]:not-hover:not-focus-within:shadow-[0_3px_6px_rgba(10,30,70,.32),inset_0_-2px_3px_rgba(0,0,0,.35)]"
             >
               <PasswordIcon className="size-6 shrink-0 group-focus-within/pw:text-primary group-hover/pw:text-primary" />
               <input
@@ -760,7 +744,7 @@ export function ShareFolder() {
               <div
                 className={cn(
                   frontCard,
-                  "top-[285px] h-auto -translate-y-1/2 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 py-3.5",
+                  "top-[341px] h-auto -translate-y-1/2 grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 py-3.5",
                 )}
               >
                 {/* left: title and link; right: QR code */}
@@ -1049,7 +1033,7 @@ export function ShareFolder() {
         className={dialog}
       >
         {viewing?.preview && (
-          <div className="animate-folder-sheet rounded-lg bg-paper p-2.5 text-paper-foreground shadow-[0_30px_60px_-20px_rgba(0,0,0,.5)]">
+          <div className="animate-dialog-in rounded-lg bg-paper p-2.5 text-paper-foreground shadow-[0_30px_60px_-20px_rgba(0,0,0,.5)]">
             <div className="mb-2.5 flex items-center justify-between gap-3 pl-1.5">
               <span className="truncate font-mono text-[11.5px] text-paper-foreground-muted">
                 {viewing.file.name} · {formatSize(viewing.file.size)}
@@ -1083,7 +1067,7 @@ const revealOnOpen =
   "opacity-0 transition-opacity group-hover/pw:opacity-100 group-focus-within/pw:opacity-100 group-data-[bad=true]/pw:opacity-100";
 
 const menu =
-  "absolute z-40 min-w-[200px] animate-folder-pop rounded-xl border bg-popover p-1.5 text-popover-foreground shadow-[0_18px_40px_-14px_rgba(10,20,40,.35)]";
+  "absolute z-40 min-w-[200px] animate-pop-in rounded-xl border bg-popover p-1.5 text-popover-foreground shadow-[0_18px_40px_-14px_rgba(10,20,40,.35)]";
 
 const menuItem =
   "flex w-full cursor-pointer items-center justify-between gap-2.5 rounded-md px-2.5 py-[7px] text-left text-[13.5px] hover:bg-accent";

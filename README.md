@@ -171,7 +171,7 @@ app/
   api/cron/route.ts  # GET   /api/cron — expired-file cleanup
   api/nearby/        # POST  /api/nearby, /send, /leave — nearby sharing
 components/
-  folder/            # The folder UI: create (share-folder), view (view-folder), shared parts
+  desk/              # The desk UI: create (share-desk), view (view-desk), shared parts
   nearby.tsx         # Nearby sharing: background check-ins, incoming links, the Nearby button
   editor.tsx         # CodeMirror editor
 lib/

@@ -7,7 +7,6 @@ import { ThemeProvider } from "next-themes";
 
 import { NearbyProvider } from "@/components/nearby";
 import { Toaster } from "@/components/ui/sonner";
-import { deskLookScript } from "@/lib/desk-style";
 import { stageScaleScript } from "@/lib/stage";
 import { cn } from "@/lib/utils";
 
@@ -52,7 +51,6 @@ export default function RootLayout({
     <html className="h-full" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: stageScaleScript }} />
-        <script dangerouslySetInnerHTML={{ __html: deskLookScript }} />
       </head>
       <body
         className={cn(

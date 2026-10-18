@@ -2,8 +2,6 @@
 
 import {
   CheckIcon,
-  ChevronLeftIcon,
-  ChevronRightIcon,
   CopyIcon,
   FileArchiveIcon,
   FileAudioIcon,
@@ -20,10 +18,9 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useTheme } from "next-themes";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 import { PaasterLogo } from "@/components/icons/paaster-logo";
-import { stepDeskLook } from "@/lib/desk-style";
 import { cn } from "@/lib/utils";
 
 /* ---------- page frame ---------- */
@@ -94,7 +91,7 @@ export function DeskPage({
 
         <div className="mx-auto mt-8 max-w-[520px] text-center">
           {/* Fixed-height heading (one-line title, two-line subtitle) so the
-              folder sits in the same place on every page and state. */}
+              desk sits in the same place on every page and state. */}
           <h1 className="truncate text-[clamp(20px,3.6vw,24px)]/[1.25] font-semibold tracking-tight">
             {title}
           </h1>
@@ -123,95 +120,33 @@ export function DeskPage({
   );
 }
 
-/* ---------- the folder ---------- */
+/* ---------- the desk ---------- */
 
-// The folder: back panel, what's inside, a frosted front panel, and whatever
-// sits on the front. `sealing` slides the contents down, `sealed` raises the
-// front to close it. Children can read those via group-data-*/env.
-// In the desk-stack style there are no panels: the sheets lie loose on the
-// desk and draw together (`stacked`) when sealed.
-export function Folder({
+// The desk: what's on it (`inside`), and whatever sits in front of it.
+// The sheets lie loose on the desk and draw together once it's `sealed`
+// (from the moment publishing starts); children can read that via
+// group-data-[sealed]/env.
+export function Desk({
   inside,
   onFront,
   outside,
-  sealing,
   sealed,
-  drag,
 }: {
   inside?: React.ReactNode;
   onFront?: React.ReactNode;
   // Positioned in stage coordinates, above the desk (e.g. popovers).
   outside?: React.ReactNode;
-  sealing?: boolean;
   sealed?: boolean;
-  drag?: boolean;
 }) {
-  // Swipe sideways on the desk to change its look (phones have no room for
-  // the arrows).
-  const touch = useRef<{ x: number; y: number }>(null);
   // --stage-scale is set before the first paint (see lib/stage.ts).
   return (
-    <div
-      className="relative mx-auto h-[calc(430px*var(--stage-scale,1))] w-[calc(560px*var(--stage-scale,1))]"
-      onTouchStart={(e) => {
-        const t = e.touches[0];
-        touch.current = { x: t.clientX, y: t.clientY };
-      }}
-      onTouchEnd={(e) => {
-        const start = touch.current;
-        touch.current = null;
-        if (!start) return;
-        const t = e.changedTouches[0];
-        const dx = t.clientX - start.x;
-        const dy = t.clientY - start.y;
-        if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 2) {
-          stepDeskLook(dx < 0 ? 1 : -1);
-        }
-      }}
-    >
-      {/* look arrows (desk stack, then each folder colour), beside the desk
-          where there's room */}
-      {(
-        [
-          [-1, "Previous style", ChevronLeftIcon, "-left-14"],
-          [1, "Next style", ChevronRightIcon, "-right-14"],
-        ] as const
-      ).map(([direction, label, Icon, side]) => (
-        <button
-          key={direction}
-          type="button"
-          aria-label={label}
-          title={label}
-          onClick={() => stepDeskLook(direction)}
-          className={cn(
-            "absolute top-[55%] z-10 hidden size-9 -translate-y-1/2 cursor-pointer place-items-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground min-[700px]:grid [&_svg]:size-5",
-            side,
-          )}
-        >
-          <Icon />
-        </button>
-      ))}
-      <div className="absolute top-0 left-0 h-[430px] w-[560px] origin-top-left scale-(--stage-scale,1)">
+    <div className="relative mx-auto h-[calc(400px*var(--stage-scale,1))] w-[calc(560px*var(--stage-scale,1))]">
+      <div className="absolute top-0 left-0 h-[400px] w-[560px] origin-top-left scale-(--stage-scale,1)">
         <div
-          data-sealing={!!sealing}
-          data-stacked={!!(sealing || sealed)}
           data-sealed={!!sealed}
-          data-drag={!!drag}
-          className="group/env absolute top-14 left-5 h-[360px] w-[520px]"
+          className="group/env absolute inset-0"
         >
-          {/* soft shadow on the desk */}
-          <div className="desk-stack:hidden pointer-events-none absolute inset-x-2 top-10 -bottom-2.5 rounded-[18px] bg-folder-shadow blur-[26px] after:absolute after:inset-x-[30px] after:bottom-1.5 after:h-[18px] after:rounded-full after:bg-folder-shadow after:blur-[8px] after:content-['']" />
-
-          {/* back panel and tab: one continuous shape, so there's no seam */}
-          <div className="desk-stack:hidden absolute inset-0 bg-[linear-gradient(180deg,color-mix(in_srgb,var(--color-folder)_86%,#fff)_0,var(--color-folder)_30px,var(--color-folder)_55%,var(--color-folder-deep)_100%)] [clip-path:path('M0_14_Q0_0_14_0_H146_C158_0_163_3_169_11_L176_20_C180_25_184_26_192_26_H502_Q520_26_520_44_V342_Q520_360_502_360_H18_Q0_360_0_342_Z')] group-data-[drag=true]/env:brightness-[1.12] after:pointer-events-none after:absolute after:inset-0 after:bg-[linear-gradient(180deg,rgba(255,255,255,.35),rgba(255,255,255,0)_2px),linear-gradient(rgba(255,255,255,.3),rgba(255,255,255,.3))] after:bg-no-repeat after:[background-position:0_0,190px_26px] after:[background-size:100%_100%,100%_1px] after:[clip-path:inherit] after:content-['']" />
-
-
           {inside}
-
-          {/* frosted, see-through front panel */}
-          <div className="desk-stack:hidden pointer-events-none absolute inset-x-0 top-[140px] bottom-0 z-[4] rounded-t-[14px] rounded-b-2xl bg-[linear-gradient(180deg,var(--color-folder-front),var(--color-folder-front-deep))] shadow-[inset_0_1.5px_0_var(--color-folder-rim),inset_0_0_0_1px_rgba(255,255,255,.22),inset_0_-14px_22px_-16px_rgba(0,30,80,.35),0_-10px_18px_-12px_rgba(0,25,70,.4)] backdrop-blur-md backdrop-saturate-150 transition-[top,backdrop-filter] group-data-[sealed=true]/env:backdrop-blur-[1.5px] duration-650 ease-[cubic-bezier(.4,0,.2,1)] group-data-[sealed=true]/env:top-[34px] before:absolute before:inset-0 before:rounded-[inherit] before:bg-[linear-gradient(112deg,rgba(255,255,255,.26),rgba(255,255,255,0)_34%,rgba(255,255,255,0)_72%,rgba(255,255,255,.08))] before:content-['']" />
-
-
           {onFront}
         </div>
         {outside}
@@ -223,33 +158,23 @@ export function Folder({
 // A small, fixed wobble per sheet so the desk looks casually laid out.
 const wobble = (k: number) => ((k * 7919) % 23) - 11;
 
-// Where sheet k of n goes, for both desk styles; `sheet` picks the set that
-// applies. Folder: fanned out across the folder mouth (--f*). Desk stack, in
-// stage coordinates and inside the folder's box (x 20–540, from y 56) so
-// both styles take up the same place: loose across the desk, centred (--d*;
+// Where sheet k of n goes, in stage coordinates (the sheets keep to x 20–540,
+// from y 56): loose across the desk, centred (--x/--y/--r/--sc;
 // the password button sits on top of them), and drawn together into a
-// compact, overlapping fan when sealed (--b*).
+// compact, overlapping fan when sealed (--bx/--by/--br).
 export function fanStyle(k: number, n: number) {
-  const mid = (n - 1) / 2;
-  const spread = n > 1 ? Math.min(54, 290 / (n - 1)) : 0;
-  const d = k - mid;
-
+  const d = k - (n - 1) / 2;
   const sc = n > 7 ? 0.72 : n > 4 ? 0.84 : 1;
   const w = 128 * sc;
   const span = Math.min(470, 60 + n * 118 * sc);
   const step = n > 1 ? (span - w) / (n - 1) : 0;
   const bstep = n > 1 ? Math.min(24, 140 / (n - 1)) : 0;
   return {
-    "--fx": `${(d * spread).toFixed(1)}px`,
-    "--fy": `${(Math.abs(d) ** 2 * 2.2 + Math.abs(d) * 3).toFixed(1)}px`,
-    "--fr": `${Math.max(-20, Math.min(20, d * (n > 6 ? 5 : 7))).toFixed(1)}deg`,
-    "--fsc": n > 7 ? 0.82 : n > 5 ? 0.9 : 1,
-    "--fz": 10 - Math.round(Math.abs(d)),
-    "--dx": `${(280 - span / 2 + k * step - (128 - w) / 2).toFixed(1)}px`,
-    "--dy": `${(64 + (k % 2 ? 26 : 0) + Math.abs(wobble(k)) - (184 - 184 * sc) / 2).toFixed(1)}px`,
-    "--dr": `${(wobble(k) * 1.1).toFixed(1)}deg`,
-    "--dsc": sc,
-    "--dz": 10 - Math.trunc(Math.abs(d)),
+    "--x": `${(280 - span / 2 + k * step - (128 - w) / 2).toFixed(1)}px`,
+    "--y": `${(64 + (k % 2 ? 26 : 0) + Math.abs(wobble(k)) - (184 - 184 * sc) / 2).toFixed(1)}px`,
+    "--r": `${(wobble(k) * 1.1).toFixed(1)}deg`,
+    "--sc": sc,
+    "--z": 10 - Math.trunc(Math.abs(d)),
     "--bx": `${(216 + d * bstep).toFixed(1)}px`,
     "--by": `${(72 + Math.abs(d) * 3).toFixed(1)}px`,
     "--br": `${(d * Math.min(3, 20 / Math.max(1, n - 1))).toFixed(1)}deg`,
@@ -257,11 +182,10 @@ export function fanStyle(k: number, n: number) {
   } as React.CSSProperties;
 }
 
-// Wrap the sheets in this so they sit between the back and front panels
-// (straight on the desk in the desk-stack style).
+// Wrap the sheets in this so they sit on the desk, under what's in front.
 export function Sheets({ children }: { children: React.ReactNode }) {
   return (
-    <div className="absolute inset-0 z-[2] [clip-path:inset(-420px_-120px_0_-120px)]">
+    <div className="absolute inset-0 z-[2]">
       {children}
     </div>
   );
@@ -330,7 +254,7 @@ const FILE_KINDS: [string[], typeof FileIcon, string][] = [
   ],
 ];
 
-export function fileKind(name: string) {
+function fileKind(name: string) {
   const ext = fileExt(name);
   const kind = FILE_KINDS.find(([exts]) => exts.includes(ext));
   return kind
@@ -380,7 +304,7 @@ export function Sticker({
   label?: React.ReactNode;
 } & React.ComponentProps<"button">) {
   const classes = cn(
-    "absolute top-[244px] right-[34px] z-[5] grid size-[82px] rotate-8 content-center justify-items-center gap-px rounded-full bg-[radial-gradient(circle_at_35%_30%,#fff1b8,var(--color-sticker)_60%,#f0b90f)] text-[#3b2a00] shadow-[0_3px_6px_rgba(10,30,70,.28),inset_0_-2px_3px_rgba(0,0,0,.12)] transition-[rotate,scale] data-[burn=true]:bg-[radial-gradient(circle_at_35%_30%,#ff9d86,#f0543a_60%,#c7321c)] data-[burn=true]:text-white",
+    "absolute top-[300px] right-[54px] z-[5] grid size-[82px] rotate-8 content-center justify-items-center gap-px rounded-full bg-[radial-gradient(circle_at_35%_30%,#fff1b8,var(--color-sticker)_60%,#f0b90f)] text-[#3b2a00] shadow-[0_3px_6px_rgba(10,30,70,.28),inset_0_-2px_3px_rgba(0,0,0,.12)] transition-[rotate,scale] data-[burn=true]:bg-[radial-gradient(circle_at_35%_30%,#ff9d86,#f0543a_60%,#c7321c)] data-[burn=true]:text-white",
     props.onClick && "cursor-pointer hover:scale-105 hover:rotate-0",
     className
   );
@@ -458,21 +382,19 @@ export function CopyButton({
 
 /* ---------- shared class lists ---------- */
 
-// A sheet of paper. Its place comes from the custom properties set by
-// fanStyle(): the active style copies its set into --x/--y/--r/--sc, and
-// sets the middle of the desk (--cx/--cy) that sheets rise out of.
-// Folder: standing in the folder mouth.
-// Desk stack: loose on the desk, or drawn together once sealed
-// (stage coordinates, so the sheet is anchored at the stage's corner). On
-// hover it comes to the front and its face (sheetFace) enlarges.
+// A sheet of paper on the desk, placed by the custom properties fanStyle()
+// sets: loose on the desk, or drawn together once sealed (stage
+// coordinates, from the stage's corner). --cx/--cy is
+// the middle of the desk that sheets rise out of (sheet-rise). On hover it
+// comes to the front and its face (sheetFace) enlarges.
 export const sheet =
-  "group/item absolute h-[184px] w-[128px] origin-bottom [transform:translate(var(--x),var(--y))_rotate(var(--r))_scale(var(--sc,1))] transition-[transform,filter] duration-500 ease-[cubic-bezier(.25,1.2,.4,1)] " +
-  "desk-folder:[--cx:0px] desk-folder:[--cy:0px] desk-folder:[--x:var(--fx)] desk-folder:[--y:var(--fy)] desk-folder:[--r:var(--fr)] desk-folder:[--sc:var(--fsc)] desk-folder:z-(--fz) desk-folder:bottom-[124px] desk-folder:left-[196px] desk-folder:drop-shadow-[0_2px_3px_rgba(20,30,50,.18)] desk-folder:hover:drop-shadow-[0_10px_14px_rgba(20,30,50,.25)] desk-folder:hover:[transform:translate(var(--x),calc(var(--y)_-_48px))_rotate(calc(var(--r)_*_.4))_scale(calc(var(--sc,1)_*_1.04))] desk-folder:has-focus-visible:[transform:translate(var(--x),calc(var(--y)_-_48px))_rotate(calc(var(--r)_*_.4))_scale(calc(var(--sc,1)_*_1.04))] desk-folder:group-data-[sealing=true]/env:duration-550 desk-folder:group-data-[sealing=true]/env:[transform:translate(var(--x),calc(var(--y)_+_22px))_rotate(var(--r))_scale(var(--sc,1))] " +
-  "desk-stack:[--cx:216px] desk-stack:[--cy:72px] desk-stack:[--x:var(--dx)] desk-stack:[--y:var(--dy)] desk-stack:[--r:var(--dr)] desk-stack:[--sc:var(--dsc)] desk-stack:z-(--dz) desk-stack:-top-14 desk-stack:-left-5 desk-stack:origin-center desk-stack:duration-750 desk-stack:ease-[cubic-bezier(.4,0,.2,1)] desk-stack:[filter:drop-shadow(0_3px_4px_rgba(20,30,50,.18))_drop-shadow(0_1px_1px_rgba(20,30,50,.12))] desk-stack:group-data-[stacked=false]/env:hover:z-20 desk-stack:group-data-[stacked=false]/env:hover:duration-250 desk-stack:group-data-[stacked=false]/env:hover:[filter:drop-shadow(0_10px_12px_rgba(20,30,50,.22))_drop-shadow(0_2px_3px_rgba(20,30,50,.12))] desk-stack:group-data-[stacked=false]/env:has-focus-visible:z-20 desk-stack:group-data-[stacked=false]/env:has-focus-visible:duration-250 desk-stack:group-data-[stacked=true]/env:z-(--bz) desk-stack:group-data-[stacked=true]/env:[transform:translate(var(--bx),var(--by))_rotate(var(--br))]";
+  "group/item absolute top-0 left-0 z-(--z) h-[184px] w-[128px] origin-center [--cx:216px] [--cy:72px] [filter:drop-shadow(0_3px_4px_rgba(20,30,50,.18))_drop-shadow(0_1px_1px_rgba(20,30,50,.12))] [transform:translate(var(--x),var(--y))_rotate(var(--r))_scale(var(--sc,1))] transition-[transform,filter] duration-750 ease-[cubic-bezier(.4,0,.2,1)] " +
+  "group-data-[sealed=false]/env:hover:z-20 group-data-[sealed=false]/env:hover:duration-250 group-data-[sealed=false]/env:hover:[filter:drop-shadow(0_10px_12px_rgba(20,30,50,.22))_drop-shadow(0_2px_3px_rgba(20,30,50,.12))] group-data-[sealed=false]/env:has-focus-visible:z-20 group-data-[sealed=false]/env:has-focus-visible:duration-250 " +
+  "group-data-[sealed=true]/env:z-(--bz) group-data-[sealed=true]/env:[transform:translate(var(--bx),var(--by))_rotate(var(--br))]";
 
-// The white card on the folder's front.
+// The white card in front of the desk.
 export const frontCard =
-  "absolute top-[250px] left-[34px] z-[5] grid w-[300px] -rotate-[.6deg] rounded-lg bg-white px-4 shadow-[0_2px_5px_rgba(10,30,70,.22)]";
+  "absolute top-[306px] left-[54px] z-[5] grid w-[300px] -rotate-[.6deg] rounded-lg bg-white px-4 shadow-[0_2px_5px_rgba(10,30,70,.22)]";
 
 export const button =
   "inline-flex h-[42px] items-center gap-2 rounded-full border bg-card px-[18px] text-sm font-medium text-foreground transition-[translate,background-color] hover:bg-accent disabled:cursor-not-allowed disabled:opacity-50 [&_svg]:size-[17px]";
@@ -494,7 +416,7 @@ export const footnote =
 export const dialog =
   "m-auto w-[min(560px,calc(100vw-32px))] overflow-visible bg-transparent p-0 backdrop:bg-[rgba(8,14,24,.5)]";
 export const paperDialog =
-  "relative animate-folder-sheet rounded-lg bg-paper px-4 pt-3.5 pb-3.5 text-paper-foreground shadow-[0_30px_60px_-20px_rgba(0,0,0,.45)]";
+  "relative animate-dialog-in rounded-lg bg-paper px-4 pt-3.5 pb-3.5 text-paper-foreground shadow-[0_30px_60px_-20px_rgba(0,0,0,.45)]";
 // Expiry dates in running text: amber, like the sticker.
 export const expiryText = "font-semibold text-amber-600 dark:text-amber-400";
 export const iconButton =
@@ -530,9 +452,9 @@ export async function copyImage(blob: Blob) {
 }
 
 // Round action buttons that appear on a sheet's corner on hover or focus;
-// hidden while the folder is closing.
+// hidden while the content is being sealed.
 const sheetActions =
-  "absolute top-1.5 right-1.5 z-[3] flex gap-1 opacity-0 transition-opacity group-hover/item:opacity-100 group-focus-within/item:opacity-100 group-data-[sealing=true]/env:hidden group-data-[sealed=true]/env:hidden [@media(hover:none)]:opacity-100";
+  "absolute top-1.5 right-1.5 z-[3] flex gap-1 opacity-0 transition-opacity group-hover/item:opacity-100 group-focus-within/item:opacity-100 group-data-[sealed=true]/env:hidden [@media(hover:none)]:opacity-100";
 const sheetAction =
   "grid size-5 cursor-pointer place-items-center rounded-full bg-band/90 text-white shadow-[0_1px_3px_rgba(0,0,0,.25)] hover:bg-band [&_svg]:size-2.5";
 
@@ -562,12 +484,12 @@ export function SheetAction({
   );
 }
 
-// Desk stack: the hover enlargement sits on this inner layer with its own
+// The hover enlargement sits on this inner layer with its own
 // short transition, so a sheet shrinks back quickly and its place in the
 // pile (z-index on the outer layer) changes at once, without waiting for the
 // longer move of the outer layer.
 const sheetFace =
-  "absolute inset-0 transition-[scale] duration-250 ease-out desk-stack:group-data-[stacked=false]/env:group-hover/item:scale-110 desk-stack:group-data-[stacked=false]/env:group-has-focus-visible/item:scale-110";
+  "absolute inset-0 transition-[scale] duration-250 ease-out group-data-[sealed=false]/env:group-hover/item:scale-110 group-data-[sealed=false]/env:group-has-focus-visible/item:scale-110";
 
 // A sheet on the desk: the whole sheet is one button, with its
 // corner actions as sibling buttons (a button can't contain buttons).

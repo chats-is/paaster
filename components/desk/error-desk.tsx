@@ -6,11 +6,11 @@ import Link from "next/link";
 import {
   buttonPrimary,
   buttonRow,
+  Desk,
   DeskPage,
-  Folder,
   frontCard,
   Sticker,
-} from "@/components/folder/folder-parts";
+} from "@/components/desk/desk-parts";
 import { cn } from "@/lib/utils";
 
 const STATUS: Record<string, string> = {
@@ -19,10 +19,10 @@ const STATUS: Record<string, string> = {
   ERR: "CAN'T OPEN",
 };
 
-// An empty, open folder with a note on the front explaining what went wrong;
+// An empty desk with a note in front explaining what went wrong;
 // with a `status` (an HTTP status, or ERR when the content couldn't be opened
 // at all), it's on the sticker where the expiry would be.
-export function ErrorFolder({
+export function ErrorDesk({
   title,
   detail,
   status,
@@ -33,7 +33,7 @@ export function ErrorFolder({
 }) {
   return (
     <DeskPage title={title} subtitle={detail}>
-      <Folder
+      <Desk
         onFront={
           <>
             <div className={cn(frontCard, "h-[70px] content-center")}>

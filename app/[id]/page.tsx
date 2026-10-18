@@ -1,5 +1,5 @@
-import { ViewFolder } from "@/components/folder/view-folder";
+import { ViewDesk } from "@/components/desk/view-desk";
 
 export default function Page() {
-  return <ViewFolder />;
+  return <ViewDesk />;
 }

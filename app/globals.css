@@ -2,9 +2,6 @@
 @import "tw-animate-css";
 
 @custom-variant dark (&:is(.dark *));
-/* Desk styles, from <html data-desk-style> (see lib/desk-style.ts). */
-@custom-variant desk-folder (&:where(:root:not([data-desk-style="stack"]) *));
-@custom-variant desk-stack (&:where([data-desk-style="stack"] *));
 
 @theme inline {
   --color-background: var(--background);
@@ -47,17 +44,11 @@
 }
 
 
-/* Home page folder illustration: its own palette and motion, exposed as
-   Tailwind tokens (bg-folder, text-paper-foreground, animate-sheet-rise…). */
+/* The desk illustration: its own palette and motion, exposed as Tailwind
+   tokens (bg-paper, text-paper-foreground, animate-sheet-rise…). */
 @theme inline {
   --color-desk: var(--desk);
   --color-desk-hi: var(--desk-hi);
-  --color-folder: var(--folder);
-  --color-folder-deep: var(--folder-deep);
-  --color-folder-front: var(--folder-front);
-  --color-folder-front-deep: var(--folder-front-deep);
-  --color-folder-rim: var(--folder-rim);
-  --color-folder-shadow: var(--folder-shadow);
   --color-paper: var(--paper);
   --color-paper-muted: var(--paper-muted);
   --color-paper-foreground: var(--paper-foreground);
@@ -67,30 +58,30 @@
   --color-key: var(--key);
 
   --animate-sheet-rise: sheet-rise 0.6s cubic-bezier(0.2, 0.9, 0.3, 1) backwards;
-  --animate-folder-pop: folder-pop 0.18s ease-out;
-  --animate-folder-sheet: folder-sheet 0.3s cubic-bezier(0.3, 1.3, 0.5, 1);
+  --animate-pop-in: pop-in 0.18s ease-out;
+  --animate-dialog-in: dialog-in 0.3s cubic-bezier(0.3, 1.3, 0.5, 1);
   --animate-radar-ring: radar-ring 2.4s cubic-bezier(0.2, 0.6, 0.4, 1) infinite;
 
   /* Sheets arrive by floating up out of the middle of the desk (--cx/--cy,
-     set per desk style on the sheet). */
+     set on the sheet). */
   @keyframes sheet-rise {
     from {
       transform: translate(var(--cx), calc(var(--cy) + 40px)) scale(0.5);
       opacity: 0;
     }
   }
-  @keyframes folder-pop {
+  @keyframes pop-in {
     from {
       opacity: 0;
       transform: translateY(4px);
     }
   }
-  @keyframes folder-shake {
+  @keyframes shake {
     0%, 100% { translate: 0; }
     20%, 60% { translate: -6px 0; }
     40%, 80% { translate: 6px 0; }
   }
-  @keyframes folder-sheet {
+  @keyframes dialog-in {
     from {
       transform: translateY(20px) rotate(2deg);
       opacity: 0;
@@ -112,12 +103,6 @@
 :root {
   --desk: #e3e9f0;
   --desk-hi: #f4f7fa;
-  --folder: rgba(63, 142, 240, 0.98);
-  --folder-deep: rgb(44, 116, 218);
-  --folder-front: rgba(150, 204, 255, 0.58);
-  --folder-front-deep: rgba(92, 164, 246, 0.72);
-  --folder-rim: rgba(255, 255, 255, 0.7);
-  --folder-shadow: rgba(17, 32, 56, 0.18);
   --paper: #fbfcfd;
   --paper-muted: #f1f4f7;
   --paper-foreground: #1a2330;
@@ -162,12 +147,6 @@
 .dark {
   --desk: #0e1520;
   --desk-hi: #1a2433;
-  --folder: rgba(47, 111, 207, 0.97);
-  --folder-deep: rgb(34, 88, 175);
-  --folder-front: rgba(110, 170, 240, 0.5);
-  --folder-front-deep: rgba(64, 128, 214, 0.66);
-  --folder-rim: rgba(255, 255, 255, 0.45);
-  --folder-shadow: rgba(0, 0, 0, 0.55);
   --paper: #f1f3f5;
   --paper-muted: #e3e7ec;
   --background: oklch(0.17 0.012 215);
@@ -201,72 +180,6 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
-}
-
-/* Folder colours: <html data-folder-color>, set before the first paint and
-   switched with the arrows (lib/desk-style.ts). Blue is the default above. Light first, then dark, so .dark wins on ties. */
-:root[data-folder-color="green"] {
-  --folder: rgba(52, 176, 108, 0.98);
-  --folder-deep: rgb(35, 144, 90);
-  --folder-front: rgba(160, 235, 195, 0.6);
-  --folder-front-deep: rgba(80, 190, 130, 0.74);
-}
-:root[data-folder-color="purple"] {
-  --folder: rgba(139, 107, 234, 0.98);
-  --folder-deep: rgb(108, 79, 212);
-  --folder-front: rgba(205, 190, 255, 0.6);
-  --folder-front-deep: rgba(150, 120, 240, 0.74);
-}
-:root[data-folder-color="orange"] {
-  --folder: rgba(247, 138, 61, 0.98);
-  --folder-deep: rgb(224, 109, 34);
-  --folder-front: rgba(255, 205, 165, 0.6);
-  --folder-front-deep: rgba(248, 150, 85, 0.74);
-}
-:root[data-folder-color="graphite"] {
-  --folder: rgba(107, 117, 132, 0.98);
-  --folder-deep: rgb(83, 92, 105);
-  --folder-front: rgba(200, 208, 220, 0.6);
-  --folder-front-deep: rgba(130, 140, 155, 0.74);
-}
-.dark[data-folder-color="green"] {
-  --folder: rgba(38, 140, 86, 0.97);
-  --folder-deep: rgb(26, 110, 68);
-  --folder-front: rgba(110, 200, 150, 0.5);
-  --folder-front-deep: rgba(55, 160, 105, 0.66);
-}
-.dark[data-folder-color="purple"] {
-  --folder: rgba(112, 84, 205, 0.97);
-  --folder-deep: rgb(86, 62, 180);
-  --folder-front: rgba(165, 145, 240, 0.5);
-  --folder-front-deep: rgba(120, 95, 215, 0.66);
-}
-.dark[data-folder-color="orange"] {
-  --folder: rgba(214, 112, 44, 0.97);
-  --folder-deep: rgb(182, 88, 26);
-  --folder-front: rgba(240, 165, 115, 0.5);
-  --folder-front-deep: rgba(215, 125, 65, 0.66);
-}
-.dark[data-folder-color="graphite"] {
-  --folder: rgba(88, 97, 112, 0.97);
-  --folder-deep: rgb(66, 74, 86);
-  --folder-front: rgba(150, 160, 175, 0.5);
-  --folder-front-deep: rgba(105, 115, 130, 0.66);
-}
-
-/* Registered so a colour switch fades instead of jumping. */
-@property --folder { syntax: "<color>"; inherits: true; initial-value: transparent; }
-@property --folder-deep { syntax: "<color>"; inherits: true; initial-value: transparent; }
-@property --folder-front { syntax: "<color>"; inherits: true; initial-value: transparent; }
-@property --folder-front-deep { syntax: "<color>"; inherits: true; initial-value: transparent; }
-@media (prefers-reduced-motion: no-preference) {
-  :root.folder-color-fade {
-    transition:
-      --folder 0.4s ease,
-      --folder-deep 0.4s ease,
-      --folder-front 0.4s ease,
-      --folder-front-deep 0.4s ease;
-  }
 }
 
 @layer base {

@@ -26,7 +26,7 @@ import {
   paperDialog,
   phoneHidden,
   phoneIconOnly,
-} from "@/components/folder/folder-parts";
+} from "@/components/desk/desk-parts";
 import { PasswordIcon } from "@/components/icons/password-icon";
 import {
   createSelf,

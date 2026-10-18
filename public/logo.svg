@@ -1,21 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" fill="none">
-  <!-- Paaster: the site's folder as an icon. Same drawing as components/icons/paaster-logo.tsx -->
-  <defs>
-    <linearGradient id="back" x1="0" y1="8" x2="0" y2="41" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#4d97f2"/>
-      <stop offset="1" stop-color="#2a6fd6"/>
-    </linearGradient>
-    <linearGradient id="front" x1="0" y1="18" x2="0" y2="41" gradientUnits="userSpaceOnUse">
-      <stop offset="0" stop-color="#8ec5ff"/>
-      <stop offset="1" stop-color="#4f9af2"/>
-    </linearGradient>
-  </defs>
-  <g transform="translate(24 24) scale(1.0526) translate(-24 -25.25)">
-    <path d="M5 13.5A4 4 0 0 1 9 9.5H18a2.5 2.5 0 0 1 1.9.87l1.3 1.5a2.5 2.5 0 0 0 1.9.87H38.5A4.5 4.5 0 0 1 43 17.24V24H5z" fill="url(#back)"/>
-    <rect x="16.8" y="14.8" width="10" height="17" rx="1.4" fill="#dce9f8" transform="rotate(-3.5 21.8 31.8)"/>
-    <rect x="21.2" y="14.8" width="10" height="17" rx="1.4" fill="#fff" transform="rotate(3.5 26.2 31.8)"/>
-    <path d="M5 24.5A3.5 3.5 0 0 1 8.5 21h31a3.5 3.5 0 0 1 3.5 3.5V36a5 5 0 0 1-5 5H10a5 5 0 0 1-5-5z" fill="url(#front)"/>
-    <rect x="9.5" y="29.5" width="18" height="5" rx="2.5" fill="#fff"/>
-    <circle cx="36" cy="32" r="3.8" fill="#ffc82e"/>
+  <!-- Paaster: the desk's sealed fan of sheets as an icon. Same drawing as components/icons/paaster-logo.tsx -->
+  <g transform="translate(24 24) scale(0.8734) translate(-24 -22.75)">
+    <rect x="9" y="9" width="17" height="25" rx="2.6" fill="#2a6fd6" transform="rotate(-16 24 42)"/>
+    <rect x="22" y="9" width="17" height="25" rx="2.6" fill="#8ec5ff" transform="rotate(16 24 42)"/>
+    <rect x="15.5" y="6" width="17" height="25" rx="2.6" fill="#fff" stroke="#2a6fd6" stroke-width="1.6"/>
+    <path d="M19.5 13h9M19.5 17h9M19.5 21h5.4" stroke="#9ec4f3" stroke-width="1.6" stroke-linecap="round"/>
+    <circle cx="33.5" cy="33.5" r="6" fill="#ffc82e" stroke="#fff" stroke-width="1.6"/>
   </g>
 </svg>

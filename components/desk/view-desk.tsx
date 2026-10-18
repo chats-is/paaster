@@ -16,14 +16,13 @@ import { QRCodeSVG } from "qrcode.react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { toast } from "sonner";
 
-import { Editor } from "@/components/editor";
-import { ErrorFolder } from "@/components/folder/error-folder";
 import {
   button,
   buttonPrimary,
   buttonRow,
   copiedButton,
   copyImage,
+  Desk,
   DeskPage,
   dialog,
   DocSheet,
@@ -31,7 +30,6 @@ import {
   expiryText,
   fanStyle,
   fileExt,
-  Folder,
   footnote,
   frontCard,
   iconButton,
@@ -44,7 +42,9 @@ import {
   SheetCard,
   Sheets,
   Sticker,
-} from "@/components/folder/folder-parts";
+} from "@/components/desk/desk-parts";
+import { ErrorDesk } from "@/components/desk/error-desk";
+import { Editor } from "@/components/editor";
 import { PasswordIcon } from "@/components/icons/password-icon";
 import { NearbyButton } from "@/components/nearby";
 import { decryptContent } from "@/lib/crypto";
@@ -78,7 +78,7 @@ function timeLeft(iso: string): [string, string] {
 
 // One-line cards shrink to fit, become pills and centre on the sticker;
 // two-line cards keep the fixed height and large radius of frontCard.
-const pillCard = "top-[285px] -translate-y-1/2 rounded-full";
+const pillCard = "top-[341px] -translate-y-1/2 rounded-full";
 
 const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 const textStats = (t: string) =>
@@ -108,7 +108,7 @@ const formatDate = (iso: string) =>
     timeStyle: "short",
   });
 
-export function ViewFolder() {
+export function ViewDesk() {
   const { id } = useParams<{ id: string }>();
   const [fragment, setFragment] = useState<string>();
   const [data, setData] = useState<Content>();
@@ -227,7 +227,7 @@ export function ViewFolder() {
     }
   };
 
-  if (error) return <ErrorFolder {...error} />;
+  if (error) return <ErrorDesk {...error} />;
 
   const attachments = data?.attachments ?? [];
   const open = phase === "open";
@@ -316,19 +316,17 @@ export function ViewFolder() {
         )
       }
     >
-      <Folder
+      <Desk
         sealed={!open}
         inside={
           <Sheets>
-            {/* Desk stack: until it's opened, the content is a stack of blank
-                sheets; the decrypted content then rises out of the middle.
-                The folder shows nothing until then. */}
+            {/* Until it's opened, the content is a fan of blank sheets; the
+                decrypted content then rises out of the middle. */}
             {!open &&
               Array.from({ length: sealedCount }, (_, k) => (
                 <SheetCard
                   key={`sheet-${k}`}
                   label="Sealed content"
-                  className="desk-folder:hidden"
                   disabled
                   style={fanStyle(k, sealedCount)}
                   onClick={() => {}}
@@ -425,7 +423,7 @@ export function ViewFolder() {
                   frontCard,
                   pillCard,
                   "grid-cols-[minmax(0,1fr)_auto] items-center gap-3 py-2 pr-2 pl-5",
-                  wrong && "animate-[folder-shake_.4s]",
+                  wrong && "animate-[shake_.4s]",
                 )}
                 onSubmit={(e) => {
                   e.preventDefault();
@@ -661,7 +659,7 @@ export function ViewFolder() {
         className={dialog}
       >
         {viewing !== undefined && viewed?.url && (
-          <div className="animate-folder-sheet rounded-lg bg-paper p-2.5 text-paper-foreground shadow-[0_30px_60px_-20px_rgba(0,0,0,.5)]">
+          <div className="animate-dialog-in rounded-lg bg-paper p-2.5 text-paper-foreground shadow-[0_30px_60px_-20px_rgba(0,0,0,.5)]">
             <div className="mb-2.5 flex items-center justify-between gap-3 pl-1.5">
               <span className="truncate font-mono text-[11.5px] text-paper-foreground-muted">
                 {attachments[viewing].name} · {formatSize(viewed.blob.size)}
