@@ -10,10 +10,9 @@ import {
   UnlockIcon,
   XIcon,
 } from "lucide-react";
-import Link from "next/link";
-import { notFound, useParams } from "next/navigation";
 import { QRCodeSVG } from "qrcode.react";
 import { useCallback, useEffect, useRef, useState } from "react";
+import { Link, useParams } from "react-router";
 import { toast } from "sonner";
 
 import {
@@ -133,7 +132,14 @@ export function ViewDesk() {
 
   useEffect(() => {
     const hash = window.location.hash.slice(1);
-    if (!hash) notFound();
+    if (!hash) {
+      setError({
+        title: "This content isn't available",
+        detail: "It doesn't exist, has expired, or was burned after reading.",
+        status: 404,
+      });
+      return;
+    }
     setFragment(hash);
     const made = urls.current;
     return () => made.forEach((u) => URL.revokeObjectURL(u));
@@ -194,7 +200,7 @@ export function ViewDesk() {
           });
           return;
         }
-        const content: Content = await res.json();
+        const content = (await res.json()) as Content;
         setData(content);
         if (content.hasPassword) {
           setPhase("locked");
@@ -553,7 +559,7 @@ export function ViewDesk() {
               password={data?.hasPassword}
             />
           )}
-          <Link href="/" className={cn(button, phoneIconOnly)}>
+          <Link to="/" className={cn(button, phoneIconOnly)}>
             <PlusIcon />
             <span className={phoneHidden}>New</span>
           </Link>
@@ -580,7 +586,7 @@ export function ViewDesk() {
               />
             </>
           )}
-          <Link href="/" className={cn(button, phoneIconOnly)}>
+          <Link to="/" className={cn(button, phoneIconOnly)}>
             <PlusIcon />
             <span className={phoneHidden}>New</span>
           </Link>
@@ -634,12 +640,12 @@ export function ViewDesk() {
           </div>
           {text !== undefined && (
             <>
-              <div className="-mx-4 border-y border-[#e3e9f2]">
+              <div className="-mx-4 min-h-[252px] border-y border-[#e3e9f2]">
                 <Editor
-                      language={data?.format}
+                  language={data?.format}
                   value={text}
                   readOnly
-                  minHeight="0"
+                  minHeight="252px"
                   maxHeight="70vh"
                 />
               </div>
@@ -686,7 +692,6 @@ export function ViewDesk() {
                 </button>
               </div>
             </div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={viewed.url}
               alt={attachments[viewing].name}

@@ -148,9 +148,12 @@ export function NearbyProvider({ children }: { children: React.ReactNode }) {
           }),
         });
         if (res.ok && !stopped) {
-          const { devices, inbox } = await res.json();
+          const { devices, inbox } = (await res.json()) as {
+            devices?: NearbyPeer[];
+            inbox?: NearbyEnvelope[];
+          };
           if (devices) setPeers(devices);
-          (inbox as NearbyEnvelope[]).forEach(receive);
+          inbox?.forEach(receive);
         }
       } catch {
         // Offline for a moment; try again next time.

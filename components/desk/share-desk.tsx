@@ -281,7 +281,7 @@ export function ShareDesk() {
       throw new Error(
         (await res.text()) || "Publishing failed — please try again",
       );
-    const { id } = await res.json();
+    const { id } = (await res.json()) as { id: string };
     return `${window.location.origin}/${id}#${fragment}`;
   };
 
@@ -977,7 +977,7 @@ export function ShareDesk() {
           </div>
           <div
             ref={sheetInput}
-            className="-mx-4 border-y border-[#e3e9f2]"
+            className="-mx-4 min-h-[252px] border-y border-[#e3e9f2]"
             onKeyDownCapture={(e) => {
               if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) {
                 e.preventDefault();
@@ -1047,7 +1047,6 @@ export function ShareDesk() {
                 <XIcon />
               </button>
             </div>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={viewing.preview}
               alt={viewing.file.name}

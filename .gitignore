@@ -19,6 +19,11 @@
 
 # production
 /build
+/dist
+
+# wrangler
+.wrangler/
+.dev.vars
 
 # misc
 .DS_Store
@@ -30,9 +35,8 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
+# env files
 .env*
-!.env.example
 
 # vercel
 .vercel
@@ -40,3 +44,4 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+worker-configuration.d.ts

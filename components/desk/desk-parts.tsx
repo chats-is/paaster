@@ -17,11 +17,11 @@ import {
   PresentationIcon,
   SunIcon,
 } from "lucide-react";
-import Link from "next/link";
-import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { Link } from "react-router";
 
 import { PaasterLogo } from "@/components/icons/paaster-logo";
+import { useTheme } from "@/components/theme";
 import { cn } from "@/lib/utils";
 
 /* ---------- page frame ---------- */
@@ -30,7 +30,7 @@ const themes = [
   { value: "system", label: "system", Icon: MonitorIcon },
   { value: "light", label: "light", Icon: SunIcon },
   { value: "dark", label: "dark", Icon: MoonIcon },
-];
+] as const;
 
 function ThemeToggle() {
   const { theme, setTheme } = useTheme();
@@ -81,7 +81,7 @@ export function DeskPage({
       <div className="flex-1">
         <header className="mx-auto flex h-15 max-w-[760px] items-center justify-between">
           <Link
-            href="/"
+            to="/"
             className="flex items-center gap-2.5 text-base font-semibold tracking-tight"
           >
             <PaasterLogo size={24} className="translate-y-[0.375px]" />
@@ -223,7 +223,6 @@ export function PhotoSheet({ src, name }: { src?: string; name: string }) {
           <FileImageIcon strokeWidth={1.5} className="size-14 text-[#0d9488]" />
         </span>
       ) : src ? (
-        // eslint-disable-next-line @next/next/no-img-element
         <img
           src={src}
           alt=""

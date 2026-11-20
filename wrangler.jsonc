@@ -1,0 +1,31 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "paaster",
+  "main": "./worker/index.ts",
+  "compatibility_date": "2026-11-01",
+  "assets": {
+    "not_found_handling": "single-page-application",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api*"]
+  },
+  "vars": {
+    "MAX_FILE_COUNT": "10",
+    "MAX_TOTAL_SIZE_MB": "50"
+  },
+  "durable_objects": {
+    "bindings": [{ "name": "PAASTER", "class_name": "PaasterObject" }]
+  },
+  "r2_buckets": [
+    {
+      "binding": "FILES",
+      "bucket_name": "paaster",
+      "remote": true
+    }
+  ],
+  "migrations": [
+    {
+      "tag": "v1",
+      "new_sqlite_classes": ["PaasterObject"]
+    }
+  ]
+}

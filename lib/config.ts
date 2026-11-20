@@ -1,15 +1,15 @@
-// Upload limits, configurable via environment variables.
-// Use the NEXT_PUBLIC_ prefix so the same values are available both in the
-// browser (create page validation) and on the server (API enforcement).
+// Upload limits. The Worker enforces the same numbers from its own vars
+// (MAX_FILE_COUNT, MAX_TOTAL_SIZE_MB). Override the browser copy with
+// VITE_MAX_FILE_COUNT and VITE_MAX_TOTAL_SIZE_MB, and keep the two in step.
 
 export const MAX_FILE_COUNT = parseInt(
-  process.env.NEXT_PUBLIC_MAX_FILE_COUNT || "10",
+  import.meta.env.VITE_MAX_FILE_COUNT || "10",
   10
 );
 
 // Combined size of all files in a single paste, in megabytes.
 export const MAX_TOTAL_SIZE_MB = parseInt(
-  process.env.NEXT_PUBLIC_MAX_TOTAL_SIZE_MB || "50",
+  import.meta.env.VITE_MAX_TOTAL_SIZE_MB || "50",
   10
 );
 

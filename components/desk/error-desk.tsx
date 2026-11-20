@@ -1,7 +1,7 @@
 "use client";
 
 import { PlusIcon } from "lucide-react";
-import Link from "next/link";
+import { Link } from "react-router";
 
 import {
   buttonPrimary,
@@ -79,7 +79,7 @@ export function ErrorDesk({
         }
       />
       <div className={buttonRow}>
-        <Link href="/" className={buttonPrimary}>
+        <Link to="/" className={buttonPrimary}>
           <PlusIcon />
           New
         </Link>

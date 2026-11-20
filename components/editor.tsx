@@ -122,9 +122,12 @@ export function Editor({
       EditorView.editable.of(!readOnly),
       EditorView.lineWrapping,
       EditorView.theme({
-        "&": { maxHeight },
+        "&": { minHeight, maxHeight },
         ".cm-scroller": {
           overflow: "auto",
+          // Keep the scrollbar's space so focusing or clicking a line
+          // doesn't reflow the text and change the editor's height.
+          scrollbarGutter: "stable",
         },
         ".cm-content": {
           paddingRight: "16px",
@@ -154,7 +157,7 @@ export function Editor({
       editorRef.current = null;
     };
     // NOTE: we only want to run this effect once
-    // eslint-disable-next-line
+     
   }, []);
 
   useEffect(() => {
