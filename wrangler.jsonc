@@ -10,7 +10,7 @@
   },
   "vars": {
     "MAX_FILE_COUNT": "10",
-    "MAX_TOTAL_SIZE_MB": "50"
+    "MAX_TOTAL_SIZE_MB": "100"
   },
   "durable_objects": {
     "bindings": [{ "name": "PAASTER", "class_name": "PaasterObject" }]

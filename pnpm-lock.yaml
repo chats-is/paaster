@@ -62,6 +62,9 @@ importers:
       '@fontsource/geist-sans':
         specifier: ^5.2.5
         version: 5.3.0
+      aws4fetch:
+        specifier: ^1.0.20
+        version: 1.0.20
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
@@ -1210,6 +1213,9 @@ packages:
 
   asynckit@0.4.0:
     resolution: {integrity: sha512-Oei9OH4tRh0YqU3GxhX79dM/mwVgvbZJaSNaRk+bshkj0S5cfHcgYakreBjrHwatXKbz+IoIdYLxrKim2MjW0Q==}
+
+  aws4fetch@1.0.20:
+    resolution: {integrity: sha512-/djoAN709iY65ETD6LKCtyyEI04XIBP5xVvfmNxsEP0uJB5tyaGBztSryRr4HqMStr9R06PisQE7m9zDTXKu6g==}
 
   balanced-match@1.0.2:
     resolution: {integrity: sha512-3oSeUO0TMV67hN1AmbXsK4yaqU7tjiHlbxRDZOpH0KW9+CeX4bRAaX0Anxt0tx2MrpRpWwQaPwIlISEJhYU5Pw==}
@@ -3150,6 +3156,8 @@ snapshots:
   argparse@2.0.1: {}
 
   asynckit@0.4.0: {}
+
+  aws4fetch@1.0.20: {}
 
   balanced-match@1.0.2: {}
 

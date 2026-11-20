@@ -71,7 +71,7 @@ Limits: a network lists at most 30 devices, a tab can send 10 links a minute, an
 
 - Node.js 20+
 - [pnpm](https://pnpm.io/)
-- For deployment: a Cloudflare account. Local development simulates R2 and Durable Objects and needs no account.
+- For deployment: a Cloudflare account. Local development simulates Durable Objects. File upload uses the real bucket, so it also needs that account and the secrets below.
 
 ### Setup
 
@@ -91,11 +91,21 @@ Limits have defaults and can be changed in [`wrangler.jsonc`](wrangler.jsonc):
 | Variable | Default | Description |
 | --- | --- | --- |
 | `MAX_FILE_COUNT` | `10` | Max attachments per paste |
-| `MAX_TOTAL_SIZE_MB` | `50` | Max total attachment size (MB) |
+| `MAX_TOTAL_SIZE_MB` | `100` | Max total attachment size (MB) |
 
 The browser uses the same defaults. The Worker is what actually rejects an upload.
 
-Turn on public access for the existing `paaster` bucket. Attachment links are its public URL. Set that URL as `R2_PUBLIC_URL` with `pnpm exec wrangler secret put R2_PUBLIC_URL` (no trailing slash). For local development, put the same value in `.dev.vars`. `pnpm dev` uses the real bucket. Text stays in the paste record. The paste's Durable Object alarm deletes expired objects.
+Turn on public access for the existing `paaster` bucket. The browser uploads encrypted files directly to that bucket. Attachment links are its public URL. Text stays in the paste record. The paste's Durable Object alarm deletes expired objects.
+
+Set these as Worker secrets (`pnpm exec wrangler secret put <NAME>`). For local development, put the same values in `.dev.vars`. `pnpm dev` uses the real bucket.
+
+| Name | Purpose |
+| --- | --- |
+| `R2_ACCOUNT_ID` | Cloudflare account id. The upload host is `https://<R2_ACCOUNT_ID>.r2.cloudflarestorage.com` |
+| `R2_ACCESS_KEY_ID` | R2 API token access key id |
+| `R2_SECRET_ACCESS_KEY` | R2 API token secret |
+| `R2_BUCKET` | Bucket name used in the upload address. It must match the `bucket_name` binding in `wrangler.jsonc` |
+| `R2_PUBLIC_URL` | Public base URL of the bucket, no trailing slash, for example `https://pub-xxxx.r2.dev` |
 
 ## Deployment
 
@@ -111,7 +121,9 @@ pnpm run deploy
 
 | Method | Endpoint | Description |
 | --- | --- | --- |
-| `POST` | `/api` | Create a paste (multipart form: encrypted text/files, format, expiry, flags) |
+| `POST` | `/api` | Save one paste. With files, the form also carries the upload id and file names |
+| `POST` | `/api/uploads` | Sign direct upload URLs for a paste's files |
+| `POST` | `/api/uploads/abort` | Delete objects from an upload that did not finish |
 | `GET` | `/api/:id` | Fetch a paste's encrypted content (deletes it if burn-after-read) |
 | `POST` | `/api/nearby` | Nearby check-in: list this tab on its network, collect links sent to it, and (with `list: true`) get the other devices there |
 | `POST` | `/api/nearby/send` | Send an encrypted link to another tab on the same network |

@@ -5,6 +5,7 @@ import type { Bindings } from "./bindings";
 import { isId, parseDevice, parseEnvelope } from "./nearby";
 import { networkId } from "./network";
 import { type CheckInResult, PaasterObject } from "./object";
+import { abortUploads, filesFromForm, saveUploads, startUploads } from "./upload";
 
 // Burn-after-read content is deleted when it's first opened; this is how long
 // it's kept if nobody ever does.
@@ -39,22 +40,6 @@ function json(body: unknown, status = 200) {
   });
 }
 
-function limits(env: Bindings) {
-  const count = positive(env.MAX_FILE_COUNT, 10);
-  const mb = positive(env.MAX_TOTAL_SIZE_MB, 50);
-  return { count, bytes: mb * 1024 * 1024, mb };
-}
-
-function publicBase(env: Bindings) {
-  const url = env.R2_PUBLIC_URL?.replace(/\/+$/, "");
-  return url || undefined;
-}
-
-function positive(value: string | undefined, fallback: number) {
-  const parsed = Number.parseInt(value || "", 10);
-  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
-}
-
 function stub(env: Bindings, name: string) {
   return env.PAASTER.get(
     env.PAASTER.idFromName(name),
@@ -64,6 +49,12 @@ function stub(env: Bindings, name: string) {
 async function api(req: Request, env: Bindings, url: URL) {
   if (req.method === "POST" && url.pathname === "/api") {
     return createPaste(req, env);
+  }
+  if (req.method === "POST" && url.pathname === "/api/uploads") {
+    return startUploads(req, env);
+  }
+  if (req.method === "POST" && url.pathname === "/api/uploads/abort") {
+    return abortUploads(req, env);
   }
   if (req.method === "POST" && url.pathname === "/api/nearby") {
     return nearbyCheckIn(req, env);
@@ -97,57 +88,30 @@ async function createPaste(req: Request, env: Bindings) {
   if (!ttl && !burnAfterRead) return text("Expires is invalid", 400);
 
   const maxAge = ttl ?? BURN_MAX_AGE;
-  const files = form
-    .getAll("attachment_data")
-    .filter((entry): entry is File => entry instanceof File);
-  const names = form.getAll("attachment_name");
-  const sizes = form.getAll("attachment_size");
-  const { count, bytes, mb } = limits(env);
-
-  if (files.length > count) return text(`Too many files, max ${count}`, 400);
-  if (files.reduce((sum, file) => sum + file.size, 0) > bytes) {
-    return text(`Total size too large, max ${mb}MB`, 400);
-  }
-  if (names.some((name) => typeof name === "string" && name.length > 512)) {
-    return text("File name is too long", 400);
+  const idField = form.get("id");
+  const idGiven = typeof idField === "string" ? idField : "";
+  if (idGiven || form.getAll("attachment_name").length > 0) {
+    const files = filesFromForm(form, env);
+    if (files instanceof Response) return files;
+    return saveUploads(
+      env,
+      idGiven,
+      {
+        title: title || undefined,
+        format: format || null,
+        expires,
+        burnAfterRead,
+        hasPassword,
+        text: typeof textField === "string" ? textField || undefined : undefined,
+        ttl,
+        maxAge,
+      },
+      files,
+    );
   }
 
   let id = generateId();
   while (await stub(env, id).exists()) id = generateId();
-
-  const attachments: Content["attachments"] = [];
-  const fileKeys: string[] = [];
-  if (files.length > 0) {
-    const base = publicBase(env);
-    if (!base) {
-      console.error("Missing R2_PUBLIC_URL");
-      return text("Uploading files failed — please try again", 500);
-    }
-    try {
-      for (let i = 0; i < files.length; i++) {
-        const name = names[i];
-        const size = sizes[i];
-        if (typeof name !== "string" || !name || size === undefined) continue;
-        const key = `encrypted/${id}-${i}.bin`;
-        await env.FILES.put(key, files[i].stream(), {
-          httpMetadata: {
-            contentType: "application/octet-stream",
-            cacheControl: `public, max-age=${ttl || 3600}`,
-          },
-        });
-        fileKeys.push(key);
-        attachments.push({
-          data: `${base}/${key}`,
-          name,
-          size: Number.parseFloat(String(size)),
-        });
-      }
-    } catch (err) {
-      console.error(err);
-      await Promise.all(fileKeys.map((key) => env.FILES.delete(key).catch(() => {})));
-      return text("Uploading files failed — please try again", 500);
-    }
-  }
 
   const content: Content = {
     id,
@@ -157,16 +121,14 @@ async function createPaste(req: Request, env: Bindings) {
     burnAfterRead,
     hasPassword,
     text: typeof textField === "string" ? textField || undefined : undefined,
-    attachments: attachments.length > 0 ? attachments : undefined,
     createdAt: new Date().toISOString(),
     expiresAt: ttl ? new Date(Date.now() + ttl * 1000).toISOString() : undefined,
   };
 
   try {
-    await stub(env, id).save(content, fileKeys, Date.now() + maxAge * 1000);
+    await stub(env, id).save(content, [], Date.now() + maxAge * 1000);
   } catch (err) {
     console.error(err);
-    await Promise.all(fileKeys.map((key) => env.FILES.delete(key).catch(() => {})));
     return text("Uploading files failed — please try again", 500);
   }
   return Response.json(content);

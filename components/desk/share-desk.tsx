@@ -259,7 +259,12 @@ export function ShareDesk() {
       files,
       password || undefined,
     );
-
+    const link = (id: string) => `${window.location.origin}/${id}#${fragment}`;
+    const fail = async (res: Response) => {
+      throw new Error(
+        (await res.text()) || "Publishing failed — please try again",
+      );
+    };
     const formData = new FormData();
     formData.append("expires", expires);
     if (title.trim()) formData.append("title", title.trim());
@@ -268,21 +273,62 @@ export function ShareDesk() {
       formData.append("format", format);
       formData.append("text", encryptedText);
     }
-    files.forEach((f, i) => {
-      const encryptedFile = encryptedFiles[i];
-      if (!encryptedFile) return;
-      formData.append("attachment_data", encryptedFile, "encrypted.bin");
-      formData.append("attachment_name", f.name);
-      formData.append("attachment_size", (f.size / (1024 * 1024)).toFixed(2));
-    });
 
-    const res = await fetch("/api", { method: "POST", body: formData });
-    if (!res.ok)
-      throw new Error(
-        (await res.text()) || "Publishing failed — please try again",
+    if (files.length === 0) {
+      const res = await fetch("/api", { method: "POST", body: formData });
+      if (!res.ok) await fail(res);
+      const { id } = (await res.json()) as { id: string };
+      return link(id);
+    }
+
+    if (encryptedFiles.length !== files.length) {
+      throw new Error("Publishing failed — please try again");
+    }
+    const sessionRes = await fetch("/api/uploads", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        expires,
+        files: files.map((file, i) => ({
+          bytes: encryptedFiles[i].size,
+          original: file.size,
+        })),
+      }),
+    });
+    if (!sessionRes.ok) await fail(sessionRes);
+    const session = (await sessionRes.json()) as {
+      id: string;
+      uploads: { url: string; headers: Record<string, string> }[];
+    };
+
+    try {
+      await Promise.all(
+        session.uploads.map(async (upload, i) => {
+          const put = await fetch(upload.url, {
+            method: "PUT",
+            headers: upload.headers,
+            body: encryptedFiles[i],
+          });
+          if (!put.ok) await fail(put);
+        }),
       );
-    const { id } = (await res.json()) as { id: string };
-    return `${window.location.origin}/${id}#${fragment}`;
+      formData.append("id", session.id);
+      files.forEach((file) => {
+        formData.append("attachment_name", file.name);
+        formData.append("attachment_original", String(file.size));
+      });
+      const res = await fetch("/api", { method: "POST", body: formData });
+      if (!res.ok) await fail(res);
+      const { id } = (await res.json()) as { id: string };
+      return link(id);
+    } catch (err) {
+      await fetch("/api/uploads/abort", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ id: session.id, count: files.length }),
+      }).catch(() => {});
+      throw err;
+    }
   };
 
   const seal = async () => {

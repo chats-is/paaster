@@ -9,7 +9,7 @@ export const MAX_FILE_COUNT = parseInt(
 
 // Combined size of all files in a single paste, in megabytes.
 export const MAX_TOTAL_SIZE_MB = parseInt(
-  import.meta.env.VITE_MAX_TOTAL_SIZE_MB || "50",
+  import.meta.env.VITE_MAX_TOTAL_SIZE_MB || "100",
   10
 );
 
